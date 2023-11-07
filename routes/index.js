@@ -15,6 +15,7 @@ router.get('/', function (req, res, next) {
 router.post("/", cors(corsOptions), function (req, res, next) {
   console.log(req.body);
   const data = req.body;
-  res.sendStatus(200);
+  // res.sendStatus(200);
+  res.status(200).json({ name: data.name });
 })
 module.exports = router;
