@@ -9,12 +9,15 @@ const corsOptions = {
   optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
 }
 
+console.log(corsOptions);
+
 /* GET home page. */
 router.get('/', function (req, res, next) {
   res.render('index', { title: 'Express' });
 });
 
-router.post("/", cors(corsOptions), async function (req, res, next) {
+router.post("/", async function (req, res, next) {
+  // router.post("/", cors(corsOptions), async function (req, res, next) {
   const data = req.body;
   let response = {};
 
@@ -42,24 +45,24 @@ module.exports = router;
 
 async function scrapeNameInfo(name) {
 
-    try {
+  try {
 
-      let url = `https://www.behindthename.com/name/${name}`;
-      const response = await axios.get(url);
+    let url = `https://www.behindthename.com/name/${name}`;
+    const response = await axios.get(url);
 
-      // Get the HTML code of the webpage 
-      const html = response.data;
+    // Get the HTML code of the webpage 
+    const html = response.data;
 
-      const $ = cheerio.load(html);
+    const $ = cheerio.load(html);
 
-      const nameData = $('.namedef').text();
-      
-      console.log(nameData);
+    const nameData = $('.namedef').text();
 
-      return nameData;
+    console.log(nameData);
 
-    } catch (error) {
-      console.log("Error fetching name data->", error);
-      return false;
-    }
+    return nameData;
+
+  } catch (error) {
+    console.log("Error fetching name data->", error);
+    return false;
+  }
 }
