@@ -21,10 +21,10 @@ router.post("/", async function (req, res, next) {
   const data = req.body;
   let response = {};
 
-  let nameData = await scrapeNameInfo(data.name);
+  let scrapedData = await scrapeNameInfo(data.name);
 
-  if (nameData) {
-    response.nameData = nameData;
+  if (scrapedData) {
+    response.scrapedData = scrapedData;
   }
 
   const mongoClient = req.app.locals.mongoClient;
@@ -47,19 +47,37 @@ async function scrapeNameInfo(name) {
 
   try {
 
+    let scrapedData = {};
+
     let url = `https://www.behindthename.com/name/${name}`;
-    const response = await axios.get(url);
+
+    let response = await axios.get(url);
 
     // Get the HTML code of the webpage 
-    const html = response.data;
+    let html = response.data;
 
-    const $ = cheerio.load(html);
+    let $ = cheerio.load(html);
 
     const nameData = $('.namedef').text();
 
-    console.log(nameData);
+    scrapedData.nameData = nameData;
 
-    return nameData;
+    url = `https://www.behindthename.com/name/${name}/related`;
+
+    response = await axios.get(url);
+
+    // Get the HTML code of the webpage 
+    html = response.data;
+
+    $ = cheerio.load(html);
+
+    let equivalentsArray = $('#body-inner > div:nth-child(6)').text().trim().split(/\n/)
+
+    scrapedData.equivalent = equivalentsArray[Math.floor(Math.random() * equivalentsArray.length)];
+
+    console.log(JSON.stringify(scrapedData));
+
+    return scrapedData;
 
   } catch (error) {
     console.log("Error fetching name data->", error);
