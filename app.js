@@ -10,6 +10,7 @@ const MongoClient = require('mongodb').MongoClient
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var mergeRouter = require('./routes/merge');
+var videosRouter = require('./routes/videos');
 
 var app = express();
 connectToDb().then(client => app.locals.mongoClient = client);
@@ -28,6 +29,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/merge', mergeRouter);
+app.use('/videos', videosRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

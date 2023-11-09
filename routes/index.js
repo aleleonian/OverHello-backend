@@ -3,7 +3,7 @@ const router = express.Router();
 const cors = require('cors')
 const axios = require("axios");
 const cheerio = require("cheerio");
-
+ 
 const corsOptions = {
   origin: process.env.CORS_HOST,
   optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
@@ -15,6 +15,8 @@ console.log(corsOptions);
 router.get('/', function (req, res, next) {
   res.render('index', { title: 'Express' });
 });
+
+
 
 router.post("/", async function (req, res, next) {
   // router.post("/", cors(corsOptions), async function (req, res, next) {
