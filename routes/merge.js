@@ -21,7 +21,7 @@ router.get('/', async function (req, res, next) {
                 chainedInputs
                     .on('end', function () {
                         console.log('files have been merged succesfully');
-                        res.status(200).json("Bro, we got the video!");
+                        res.status(200).json("OK!");
                     })
                     .on('error', function (error) {
                         console.log('an error happened: ' + error.message);
