@@ -1,9 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const cors = require('cors')
-const axios = require("axios");
 const cheerio = require("cheerio");
- 
+
 const corsOptions = {
   origin: process.env.CORS_HOST,
   optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
@@ -46,30 +45,39 @@ module.exports = router;
 
 
 async function scrapeNameInfo(name) {
+  let scrapedData = {};
 
   try {
 
-    let scrapedData = {};
-
     let url = `https://www.behindthename.com/name/${name}`;
 
-    let response = await axios.get(url);
+    let response = await fetch(url);
 
     // Get the HTML code of the webpage 
-    let html = response.data;
+    let html = await response.text();
+
+    console.log("first query->", html);
 
     let $ = cheerio.load(html);
 
-    const nameData = $('.namedef').text();
+    let nameData = $('.namedef').text();
 
+    if (nameData.length > 500) {
+      nameData = nameData.substring(0, 497) + "...";
+    }
     scrapedData.nameData = nameData;
 
+  } catch (error) {
+    console.log("Error fetching name data->", error);
+    scrapedData.nameData = null;
+  }
+  try {
     url = `https://www.behindthename.com/name/${name}/related`;
 
-    response = await axios.get(url);
+    response = await fetch(url);
 
     // Get the HTML code of the webpage 
-    html = response.data;
+    html = await response.text();
 
     $ = cheerio.load(html);
 
@@ -79,10 +87,13 @@ async function scrapeNameInfo(name) {
 
     console.log(JSON.stringify(scrapedData));
 
-    return scrapedData;
-
-  } catch (error) {
-    console.log("Error fetching name data->", error);
-    return false;
   }
+  catch (error) {
+    console.log("Error fetching equivalent data->", error);
+    scrapedData.equivalent = null;
+  }
+
+  return scrapedData;
+
+
 }
