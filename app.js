@@ -11,7 +11,7 @@ var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var mergeRouter = require('./routes/merge');
 var videosRouter = require('./routes/videos');
-var pupRouter = require('./routes/pup');
+var pupRouter = require('./routes/snapshot');
 
 var app = express();
 connectToDb().then(client => app.locals.mongoClient = client);
@@ -31,7 +31,7 @@ app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/merge', mergeRouter);
 app.use('/videos', videosRouter);
-app.use('/pup', pupRouter);
+app.use('/snapshot', pupRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
