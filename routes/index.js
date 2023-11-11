@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const cors = require('cors')
 const cheerio = require("cheerio");
+const { dbSetClient, dbFind, dbInsert, dbSetName } = require("../db/dbOperations");
 
 const corsOptions = {
   origin: process.env.CORS_HOST,
@@ -18,28 +19,63 @@ router.get('/', function (req, res, next) {
 
 
 router.post("/", async function (req, res, next) {
-  // router.post("/", cors(corsOptions), async function (req, res, next) {
+
   const data = req.body;
+
+  const userName = data.name;
+
+  const userId = generateUserId(userName);
+
+  console.log("userId->" + userId);
+
+  // router.post("/", cors(corsOptions), async function (req, res, next) {
+
+  dbSetClient(req.app.locals.mongoClient);
+
+  dbSetName(process.env.DB_NAME);
+
+  console.log("before founduser");
+
+  const foundUser = await dbFind("users", { userId: userId });
+
+  console.log("foundUser->" + foundUser);
+
+  if (!foundUser) {
+    try {
+
+      const insertResult = await dbInsert("users", { userId: userId, userName: userName });
+
+      console.log("insertResult->" + JSON.stringify(insertResult));
+
+    }
+    catch (error) {
+      console.log("Error inserting user->", error);
+    }
+  }
+  else {
+    console.log("User was already in the db!");
+  }
+
   let response = {};
 
-  let scrapedData = await scrapeNameInfo(data.name);
+  let scrapedData = await scrapeNameInfo(userName);
 
   if (scrapedData) {
     response.scrapedData = scrapedData;
   }
 
-  const mongoClient = req.app.locals.mongoClient;
+  const equivalentsArray = scrapedData.equivalentsArray;
 
-  const ohDb = mongoClient.db('OverHello');
+  delete scrapedData.equivalentsArray;
 
-  const namesCollection = ohDb.collection('names');
+  let nameWasFound = await dbFind("names", { Name: userName });
 
-  let nameWasFound = await namesCollection.findOne({ Name: data.name });
-
-  response.name = data.name;
+  response.name = userName;
   if (nameWasFound) response.nameWasFound = true;
 
   res.status(200).json(response);
+
+
 })
 module.exports = router;
 
@@ -56,7 +92,7 @@ async function scrapeNameInfo(name) {
     // Get the HTML code of the webpage 
     let html = await response.text();
 
-    console.log("first query->", html);
+    // console.log("first query->", html);
 
     let $ = cheerio.load(html);
 
@@ -85,8 +121,7 @@ async function scrapeNameInfo(name) {
 
     scrapedData.equivalent = equivalentsArray[Math.floor(Math.random() * equivalentsArray.length)];
 
-    console.log(JSON.stringify(scrapedData));
-
+    scrapedData.equivalentsArray = equivalentsArray
   }
   catch (error) {
     console.log("Error fetching equivalent data->", error);
@@ -95,5 +130,10 @@ async function scrapeNameInfo(name) {
 
   return scrapedData;
 
+}
 
+function generateUserId(name) {
+  return name.split("").reduce(function (previousValue, currentValue) {
+    return currentValue.charCodeAt(0) + Date.now();
+  }, 0);
 }
