@@ -32,7 +32,8 @@ async function takeSnapShot(url, filePath) {
             defaultViewport: null,
             args: [
                 '--start-maximized', // you can also use '--start-fullscreen'
-                '--no-sandbox'
+                '--no-sandbox',
+                '--disable-setuid-sandbox'
             ]
         });
 
