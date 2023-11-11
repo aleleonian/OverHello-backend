@@ -16,6 +16,7 @@
     "fluent-ffmpeg": "^2.1.2",
     "http-errors": "~1.6.3",
     "mongodb": "^6.2.0",
-    "morgan": "~1.9.1"
+    "morgan": "~1.9.1",
+    "puppeteer": "^21.5.1"
   }
 }
