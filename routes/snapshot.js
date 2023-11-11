@@ -10,6 +10,8 @@ router.get('/take', async (req, res) => {
     if (url) {
         const fileName = Date.now() + "-snapshot.jpg";
 
+        console.log("process.cwd()->", process.cwd());
+        console.log("__dirname->", __dirname);
         const filePath = path.resolve(process.cwd(), `public/images/${fileName}`);
 
         let missionAccomplished = await takeSnapShot(url, filePath);
