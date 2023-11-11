@@ -15,8 +15,24 @@ async function dbInsert(collection, data) {
     const theCollection = db.collection(collection);
 
     const insertResult = await theCollection.insertOne(data);
-    
+
     return insertResult;
+
+}
+
+async function dbUpdate(collection, filter, data) {
+
+    console.log("filter->", filter);
+    console.log("data->", data);
+
+    const db = dbClient.db(dbName);
+
+    const theCollection = db.collection(collection);
+
+    const updateResult = await theCollection.updateOne(
+        filter,
+        { $set: data });
+    return updateResult;
 
 }
 
@@ -31,5 +47,5 @@ async function dbFind(collection, data) {
     return foundItem;
 }
 
-module.exports = { dbInsert, dbFind, dbSetClient, dbSetName }
+module.exports = { dbInsert, dbFind, dbSetClient, dbSetName, dbUpdate }
 

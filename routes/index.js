@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const cors = require('cors')
 const cheerio = require("cheerio");
-const { dbSetClient, dbFind, dbInsert, dbSetName } = require("../db/dbOperations");
+const { dbFind, dbInsert } = require("../db/dbOperations");
 
 const corsOptions = {
   origin: process.env.CORS_HOST,
@@ -29,10 +29,6 @@ router.post("/", async function (req, res, next) {
   console.log("userId->" + userId);
 
   // router.post("/", cors(corsOptions), async function (req, res, next) {
-
-  dbSetClient(req.app.locals.mongoClient);
-
-  dbSetName(process.env.DB_NAME);
 
   console.log("before founduser");
 

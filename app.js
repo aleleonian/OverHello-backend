@@ -13,9 +13,14 @@ var mergeRouter = require('./routes/merge');
 var videosRouter = require('./routes/videos');
 var snapshotRouter = require('./routes/snapshot');
 var srpreadSheetRouter = require('./routes/spreadsheet');
+const { dbSetClient, dbSetName } = require("./db/dbOperations");
 
 var app = express();
-connectToDb().then(client => app.locals.mongoClient = client);
+connectToDb().then(client => {
+  app.locals.mongoClient = client;
+  dbSetClient(client);
+  dbSetName(process.env.DB_NAME);
+});
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
