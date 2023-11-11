@@ -3,4 +3,3 @@ node_modules/
 .DS_Store
 noupload/
 .puppeteerrc.cjs.dist
-/public/images/*
