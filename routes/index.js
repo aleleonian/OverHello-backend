@@ -12,7 +12,7 @@ const corsOptions = {
 
 /* GET home page. */
 router.get('/', function (req, res, next) {
-  res.render('index', { title: 'Express' });
+  res.render('index', { title: 'OverHello - Backend' });
 });
 
 // router.post("/", cors(corsOptions), async function (req, res, next) {
@@ -37,8 +37,6 @@ router.post("/", async function (req, res, next) {
         when: Date.now()
       }
     );
-
-    console.log("insertResult->" + JSON.stringify(insertResult));
 
     if (!insertResult.acknowledged || !insertResult.insertedId) {
       console.log("Error inserting user->", error);
@@ -76,15 +74,19 @@ router.post("/", async function (req, res, next) {
     names: equivalentsArray
   }
 
-  // console.log(spreadSheetData);
-
+  // let's generate the spreadsheet in google drive
   response = await fetch(process.env.THIS_SERVER + '/spreadsheet', {
     method: "POST",
     body: JSON.stringify(spreadSheetData),
     headers: { "Content-type": "application/json; charset=UTF-8" }
-  })
+  });
+
   let postResponse = await response.text();
-  console.log("postResponse->", postResponse);
+  //we gota record the responseObject.sheetUrl into the db for this user
+  if (postResponse === "OK!") {
+    const updateResult = await dbUpdate("users", { userId: data.userId }, { "spreadSheet": true });
+    console.log(updateResult);
+  }
 })
 
 module.exports = router;
@@ -127,7 +129,9 @@ async function scrapeNameInfo(name) {
 
     $ = cheerio.load(html);
 
-    let equivalentsArray = $('#body-inner > div:nth-child(6)').text().trim().split(/\n/)
+    let equivalentsArray = $('#body-inner > div:nth-child(6)').text().trim().split(/\n/);
+
+    equivalentsArray = equivalentsArray.map(entry => entry.replace(/\s+/g, " "));
 
     scrapedData.equivalent = equivalentsArray[Math.floor(Math.random() * equivalentsArray.length)];
 
