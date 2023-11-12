@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+// TODO: implement cors properly
 const cors = require('cors')
 const cheerio = require("cheerio");
 const { dbFind, dbInsert } = require("../db/dbOperations");
@@ -9,15 +10,12 @@ const corsOptions = {
   optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
 }
 
-console.log(corsOptions);
-
 /* GET home page. */
 router.get('/', function (req, res, next) {
   res.render('index', { title: 'Express' });
 });
 
-
-
+// router.post("/", cors(corsOptions), async function (req, res, next) {
 router.post("/", async function (req, res, next) {
 
   const data = req.body;
@@ -26,33 +24,33 @@ router.post("/", async function (req, res, next) {
 
   const userId = generateUserId(userName);
 
-  console.log("userId->" + userId);
-
-  // router.post("/", cors(corsOptions), async function (req, res, next) {
-
-  console.log("before founduser");
-
-  const foundUser = await dbFind("users", { userId: userId });
-
-  console.log("foundUser->" + foundUser);
-
-  if (!foundUser) {
-    try {
-
-      const insertResult = await dbInsert("users", { userId: userId, userName: userName });
-
-      console.log("insertResult->" + JSON.stringify(insertResult));
-
-    }
-    catch (error) {
-      console.log("Error inserting user->", error);
-    }
-  }
-  else {
-    console.log("User was already in the db!");
-  }
-
   let response = {};
+
+  response.userId = userId;
+
+  try {
+
+    const insertResult = await dbInsert("users",
+      {
+        userId: userId,
+        userName: userName,
+        when: Date.now()
+      }
+    );
+
+    console.log("insertResult->" + JSON.stringify(insertResult));
+
+    if (!insertResult.acknowledged || !insertResult.insertedId) {
+      console.log("Error inserting user->", error);
+      return res.status(500).write("NOT OK!");
+    }
+
+  }
+  catch (error) {
+    console.log("Error inserting user->", error);
+    res.status(500).write("NOT OK!");
+    return res.end();
+  }
 
   let scrapedData = await scrapeNameInfo(userName);
 
@@ -67,12 +65,28 @@ router.post("/", async function (req, res, next) {
   let nameWasFound = await dbFind("names", { Name: userName });
 
   response.name = userName;
+
   if (nameWasFound) response.nameWasFound = true;
 
   res.status(200).json(response);
 
+  let spreadSheetData = {
+    name: userName,
+    userId: userId,
+    names: equivalentsArray
+  }
 
+  // console.log(spreadSheetData);
+
+  response = await fetch(process.env.THIS_SERVER + '/spreadsheet', {
+    method: "POST",
+    body: JSON.stringify(spreadSheetData),
+    headers: { "Content-type": "application/json; charset=UTF-8" }
+  })
+  let postResponse = await response.text();
+  console.log("postResponse->", postResponse);
 })
+
 module.exports = router;
 
 

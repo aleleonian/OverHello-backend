@@ -15,6 +15,9 @@ const sheetUrl = process.env.SHEETS_URL;
 // });
 
 router.post("/", async (req, res) => {
+
+    console.log("We're being hit!");
+
     let data = req.body;
     //TODO this data should be stringified apparently
     console.log(JSON.stringify(data));
@@ -22,9 +25,11 @@ router.post("/", async (req, res) => {
     // const names = [{ Nationality: "Armenia", Equivalent: "Ale" }, { Nationality: "Italy", Equivalent: "Alessandro" }, { Nationality: "Brasil", Equivalent: "Aleao" }];
     if (data.name && data.names && data.userId) {
         try {
+            console.log("we got all we need!");
+            if (typeof data.userId == "string") data.userId = Number(data.userId);
             let spObject = await createSpreadSheet(data.name, data.names);
             //we gota record the spObject.sheetUrl into the db for this user
-            const updateResult = await dbUpdate("users", { userId: Number(data.userId) }, { "spreadSheet": true });
+            const updateResult = await dbUpdate("users", { userId: data.userId }, { "spreadSheet": true });
             console.log(updateResult);
             res.status(200).write("OK!");
         }
@@ -40,7 +45,7 @@ router.post("/", async (req, res) => {
 
 });
 
-async function createSpreadSheet(name) {
+async function createSpreadSheet(name, equivalentArray) {
     // Initialize auth - see https://theoephraim.github.io/node-google-spreadsheet/#/guides/authentication
     // const privateKey = fs.readFileSync(path.resolve(__dirname, "../data/key"), "utf8");
     // const privateKey = process.env.SHEETS_KEY;
@@ -79,16 +84,17 @@ async function createSpreadSheet(name) {
 
     const newSheet = await doc.addSheet({ title: newTitle, headerValues: ['Nationality', 'Equivalent'] });
 
-    await newSheet.addRows(names);
+    // TODO: modify data so it looks like this:
+    // const name = "Alejandro";
+    // const names = [{ Nationality: "Armenia", Equivalent: "Ale" }, { Nationality: "Italy", Equivalent: "Alessandro" }, { Nationality: "Brasil", Equivalent: "Aleao" }];
+
+    await newSheet.addRows(equivalentArray);
 
     let spObject = {};
     spObject.success = true;
     spObject.sheetUrl = sheetUrl + "#gid=" + await findSheetId(newTitle, doc);
     return spObject;
 }
-
-const name = "Alejandro";
-const names = [{ Nationality: "Armenia", Equivalent: "Ale" }, { Nationality: "Italy", Equivalent: "Alessandro" }, { Nationality: "Brasil", Equivalent: "Aleao" }];
 
 async function findSheetId(targetSheet, doc) {
     let sheets = await doc.sheetsByTitle;
