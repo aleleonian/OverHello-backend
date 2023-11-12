@@ -23,19 +23,29 @@ router.get('/', async function (req, res, next) {
                 chainedInputs
                     .on('end', function () {
                         console.log('files have been merged succesfully');
-                        res.status(200).write("OK!");
-                        res.end();
+
+                        const resObj = {
+                            success: true
+                        }
+                        res.status(200).json(resObj);
                     })
                     .on('error', function (error) {
                         console.log('an error happened: ' + error.message);
-                        res.status(200).write("error->" + error.message);
-                        res.end();
+
+                        const resObj = {
+                            success: false,
+                            message: error.message
+                        }
+                        res.status(200).json(resObj);
                     })
                     .mergeToFile(outPath);
             }
             catch (error) {
-                res.status(200).write("error->" + error.message);
-                res.end();
+                const resObj = {
+                    success: false,
+                    message: error.message
+                }
+                res.status(200).json(resObj);
             }
         }
     }

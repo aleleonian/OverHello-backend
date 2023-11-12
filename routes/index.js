@@ -40,14 +40,19 @@ router.post("/", async function (req, res, next) {
 
     if (!insertResult.acknowledged || !insertResult.insertedId) {
       console.log("Error inserting user->", error);
-      return res.status(500).write("NOT OK!");
+      const resObj = {
+        success: false
+      }
+      return res.status(500).json(resObj);
     }
 
   }
   catch (error) {
     console.log("Error inserting user->", error);
-    res.status(500).write("NOT OK!");
-    return res.end();
+    const resObj = {
+      success: false
+    }
+    return res.status(500).json(resObj);
   }
 
   let scrapedData = await scrapeNameInfo(userName);
@@ -63,7 +68,8 @@ router.post("/", async function (req, res, next) {
   let nameWasFound = await dbFind("names", { Name: userName });
 
   response.name = userName;
-
+  response.sucess = true;
+  
   if (nameWasFound) response.nameWasFound = true;
 
   res.status(200).json(response);

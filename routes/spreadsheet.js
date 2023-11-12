@@ -15,16 +15,30 @@ router.post("/", async (req, res) => {
     if (data.name && data.names) {
         try {
             let responseObject = await createSpreadSheet(data.name, data.names);
-            if (responseObject.success) res.status(200).write("OK!");
-            else res.status(200).write("NOT OK!");
+            let resObj = {};
+            if (responseObject.success) {
+                resObj.success = true;
+                resObj.sheetUrl = responseObject.sheetUrl;
+                res.status(200).json(resObj);
+            }
+            else {
+                resObj.success = false;
+                res.status(200).json(resObj);
+            }
         }
         catch (error) {
             console.log("/spreadsheet error: ", error.message);
-            res.status(200).write("NOT OK!");
+            let resObj = {};
+            resObj.success = false;
+            resObj.message = error.message;
+            res.status(200).json(resObj);
         }
     }
     else {
-        res.status(200).write("NOT OK! - need name && names");
+        let resObj = {};
+        resObj.success = false;
+        resObj.message = "need name && names";
+        res.status(200).json(resObj);
     }
     res.end();
 

@@ -14,13 +14,28 @@ router.get('/take', async (req, res) => {
 
         let missionAccomplished = await takeSnapShot(url, filePath);
 
-        res.status(200).write(missionAccomplished ? "OK!->" + fileName : "NOT OK!");
+        let resObj;
 
-        res.end();
+        if (missionAccomplished) {
+            resObj = {
+                success: true,
+                filename: fileName
+            }
+        }
+        else {
+            resObj = {
+                success: false,
+            }
+        }
+        res.status(200).json(resObj);
+
     }
     else {
-        res.status(200).write("NO URL?");
-        res.end();
+        let resObj = {
+            success: false,
+            message: "NO URL?"
+        }
+        res.status(200).json(resObj);
     }
 });
 

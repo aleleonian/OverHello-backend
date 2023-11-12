@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start": "rm -f .puppeteerrc.cjs; node ./bin/www",
-    "build": "cp .puppeteerrc.cjs.dist .puppeteerrc.cjs"
+    "build": "cp .puppeteerrc.cjs.dist .puppeteerrc.cjs; rm -rf ./public/vids; mkdir ./public/vids; touch ./public/vids/.gitkeep; rm -rf ./public/images; mkdir ./public/images; touch ./public/images/.gitkeep"
   },
   "dependencies": {
     "cheerio": "^1.0.0-rc.12",
