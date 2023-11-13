@@ -13,16 +13,8 @@ router.post("/", async (req, res) => {
     if (data.name && data.names) {
         try {
             let responseObject = await createSpreadSheet(data.name, data.names);
-            let resObj = {};
-            if (responseObject.success) {
-                resObj.success = true;
-                resObj.sheetUrl = responseObject.sheetUrl;
-                res.status(200).json(resObj);
-            }
-            else {
-                resObj.success = false;
-                res.status(200).json(resObj);
-            }
+            res.status(200).json(responseObject);
+
         }
         catch (error) {
             console.log("/spreadsheet error: ", error.message);
@@ -103,6 +95,7 @@ async function createSpreadSheet(name, equivalentArray) {
     }
     catch (error) {
         responseObject.success = false;
+        responseObject.message = error.message;
     }
     return responseObject;
 
