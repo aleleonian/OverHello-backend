@@ -4,6 +4,8 @@ const router = express.Router();
 const cors = require('cors')
 const cheerio = require("cheerio");
 const { dbFind, dbInsert, dbUpdate } = require("../db/dbOperations");
+const { resizeImage } = require("../util/index");
+const path = require("path");
 
 const corsOptions = {
   origin: process.env.CORS_HOST,
@@ -102,8 +104,14 @@ router.post("/", async function (req, res, next) {
   response = await fetch(snapshotUrl);
   response = JSON.parse(await response.text());
   if (response.success) {
+    await resizeImage(path.resolve(__dirname, "../public/images/" + response.fileName), 400, 300, path.resolve(__dirname, "../public/images/" + response.fileName.replace("-original", "")));
+
     const updateResult = await dbUpdate("users", { userId: userId }, { "spreadSheetSnapshot": response.fileName });
+    // resize the image
     console.log(updateResult);
+
+
+
   }
   else {
     console.log(response.message);

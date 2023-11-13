@@ -13,7 +13,7 @@ router.get('/take', async (req, res) => {
     console.log("userId->", userId);
 
     if (url && userId) {
-        const fileName = userId + "-snapshot.jpg";
+        const fileName = userId + "-snapshot-original.jpg";
 
         const filePath = path.resolve(__dirname, `../public/images/${fileName}`);
 
