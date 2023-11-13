@@ -2,13 +2,18 @@ const puppeteer = require('puppeteer');
 const express = require('express');
 const router = express.Router();
 const path = require("path");
+const { wait } = require("../util/index");
 
 router.get('/take', async (req, res) => {
 
-    const url = req.query.url;
+    const url = decodeURIComponent(req.query.url);
+    const userId = req.query.userId;
 
-    if (url) {
-        const fileName = Date.now() + "-snapshot.jpg";
+    console.log("url->", url);
+    console.log("userId->", userId);
+
+    if (url && userId) {
+        const fileName = userId + "-snapshot.jpg";
 
         const filePath = path.resolve(__dirname, `../public/images/${fileName}`);
 
@@ -19,7 +24,7 @@ router.get('/take', async (req, res) => {
         if (missionAccomplished) {
             resObj = {
                 success: true,
-                filename: fileName
+                fileName: fileName
             }
         }
         else {
@@ -33,7 +38,7 @@ router.get('/take', async (req, res) => {
     else {
         let resObj = {
             success: false,
-            message: "NO URL?"
+            message: "NEED URL & USERID"
         }
         res.status(200).json(resObj);
     }

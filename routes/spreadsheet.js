@@ -2,16 +2,14 @@ const express = require('express');
 const router = express.Router();
 const { GoogleSpreadsheet } = require('google-spreadsheet');
 const { JWT } = require('google-auth-library');
+const { dbFind } = require("../db/dbOperations");
 
 const sheetUrl = process.env.SHEETS_URL;
 
 router.post("/", async (req, res) => {
 
-    console.log("We're being hit!");
-
     let data = req.body;
     //TODO this data should be stringified apparently
-    console.log(JSON.stringify(data));
     if (data.name && data.names) {
         try {
             let responseObject = await createSpreadSheet(data.name, data.names);
@@ -40,7 +38,28 @@ router.post("/", async (req, res) => {
         resObj.message = "need name && names";
         res.status(200).json(resObj);
     }
-    res.end();
+});
+
+router.get("/get-url", async function (req, res) {
+
+    const userId = req.query.userId;
+
+    if (!userId) {
+        let resObj = {
+            success: false,
+            message: "NEED USERID"
+        }
+        res.status(200).json(resObj);
+    }
+    else {
+        let userFound = await dbFind("users", { userId: Number(userId) });
+        console.log("userFound->" + JSON.stringify(userFound));
+        let resObj = {
+            success: true,
+            spreadSheetUrl: userFound.spreadSheetUrl
+        }
+        res.status(200).json(resObj);
+    }
 
 });
 

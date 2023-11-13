@@ -3,7 +3,7 @@ const router = express.Router();
 // TODO: implement cors properly
 const cors = require('cors')
 const cheerio = require("cheerio");
-const { dbFind, dbInsert } = require("../db/dbOperations");
+const { dbFind, dbInsert, dbUpdate } = require("../db/dbOperations");
 
 const corsOptions = {
   origin: process.env.CORS_HOST,
@@ -68,10 +68,11 @@ router.post("/", async function (req, res, next) {
   let nameWasFound = await dbFind("names", { Name: userName });
 
   response.name = userName;
-  response.sucess = true;
-  
+  response.success = true;
+
   if (nameWasFound) response.nameWasFound = true;
 
+  // here we return and we then continue working in the background
   res.status(200).json(response);
 
   let spreadSheetData = {
@@ -87,11 +88,25 @@ router.post("/", async function (req, res, next) {
     headers: { "Content-type": "application/json; charset=UTF-8" }
   });
 
-  let postResponse = await response.text();
+  let postResponse = JSON.parse(await response.text());
+
   //we gota record the responseObject.sheetUrl into the db for this user
-  if (postResponse === "OK!") {
-    const updateResult = await dbUpdate("users", { userId: data.userId }, { "spreadSheet": true });
+  if (postResponse.success) {
+    const updateResult = await dbUpdate("users", { userId: userId }, { "spreadSheetUrl": postResponse.sheetUrl });
     console.log(updateResult);
+  }
+
+  // let's take the snapshot of that spreadsheet
+  let snapshotUrl = process.env.THIS_SERVER + "/snapshot/take?userId=" + userId + "&url=" + encodeURIComponent(postResponse.sheetUrl);
+  console.log("snapshotUrl->", snapshotUrl)
+  response = await fetch(snapshotUrl);
+  response = JSON.parse(await response.text());
+  if (response.success) {
+    const updateResult = await dbUpdate("users", { userId: userId }, { "spreadSheetSnapshot": response.fileName });
+    console.log(updateResult);
+  }
+  else {
+    console.log(response.message);
   }
 })
 
