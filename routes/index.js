@@ -17,8 +17,8 @@ router.get('/', function (req, res, next) {
   res.render('index', { title: 'OverHello - Backend' });
 });
 
-// router.post("/", cors(corsOptions), async function (req, res, next) {
-router.post("/", async function (req, res, next) {
+router.post("/", cors(corsOptions), async function (req, res, next) {
+// router.post("/", async function (req, res, next) {
 
   const data = req.body;
 
