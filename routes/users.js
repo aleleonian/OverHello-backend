@@ -15,7 +15,6 @@ router.get("/get", async function (req, res) {
   }
   else {
       let userFound = await dbFind("users", { userId: Number(userId) });
-      console.log("userFound->" + JSON.stringify(userFound));
       let resObj = {
           success: true,
           ...userFound
