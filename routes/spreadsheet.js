@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { GoogleSpreadsheet } = require('google-spreadsheet');
 const { JWT } = require('google-auth-library');
-const { dbFind } = require("../db/dbOperations");
+// const { dbFind } = require("../db/dbOperations");
 
 const sheetUrl = process.env.SHEETS_URL;
 
@@ -32,28 +32,28 @@ router.post("/", async (req, res) => {
     }
 });
 
-router.get("/get-url", async function (req, res) {
+// router.get("/get-url", async function (req, res) {
 
-    const userId = req.query.userId;
+//     const userId = req.query.userId;
 
-    if (!userId) {
-        let resObj = {
-            success: false,
-            message: "NEED USERID"
-        }
-        res.status(200).json(resObj);
-    }
-    else {
-        let userFound = await dbFind("users", { userId: Number(userId) });
-        console.log("userFound->" + JSON.stringify(userFound));
-        let resObj = {
-            success: true,
-            spreadSheetUrl: userFound.spreadSheetUrl
-        }
-        res.status(200).json(resObj);
-    }
+//     if (!userId) {
+//         let resObj = {
+//             success: false,
+//             message: "NEED USERID"
+//         }
+//         res.status(200).json(resObj);
+//     }
+//     else {
+//         let userFound = await dbFind("users", { userId: Number(userId) });
+//         console.log("userFound->" + JSON.stringify(userFound));
+//         let resObj = {
+//             success: true,
+//             spreadSheetUrl: userFound.spreadSheetUrl
+//         }
+//         res.status(200).json(resObj);
+//     }
 
-});
+// });
 
 async function createSpreadSheet(name, equivalentArray) {
     let responseObject = {};

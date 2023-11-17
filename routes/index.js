@@ -93,6 +93,9 @@ router.post("/", async function (req, res, next) {
     const updateResult = await dbUpdate("users", { userId: userId }, { "spreadSheetUrl": postResponse.sheetUrl });
     console.log(updateResult);
   }
+  else {
+    console.log("Error generating spreadsheet!->",postResponse.message)
+  }
 
   // let's take the snapshot of that spreadsheet
   let snapshotUrl = process.env.THIS_SERVER + "/snapshot/take?userId=" + userId + "&url=" + encodeURIComponent(postResponse.sheetUrl);
