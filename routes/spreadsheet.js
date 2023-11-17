@@ -61,7 +61,7 @@ async function createSpreadSheet(name, equivalentArray) {
     try {
         const serviceAccountAuth = new JWT({
             email: process.env.SHEETS_EMAIL,
-            key: process.env.SHEETS_KEY,
+            key: JSON.parse(process.env.SHEETS_KEY),
             scopes: [
                 'https://www.googleapis.com/auth/spreadsheets',
             ],
@@ -96,6 +96,7 @@ async function createSpreadSheet(name, equivalentArray) {
     catch (error) {
         responseObject.success = false;
         responseObject.message = error.message;
+        console.log(error)
     }
     return responseObject;
 
