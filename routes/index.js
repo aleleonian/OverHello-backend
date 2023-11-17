@@ -1,24 +1,20 @@
 const express = require('express');
 const router = express.Router();
-// TODO: implement cors properly
-const cors = require('cors')
+// const cors = require('cors')
 const cheerio = require("cheerio");
 const { dbFind, dbInsert, dbUpdate } = require("../db/dbOperations");
 const { resizeImage } = require("../util/index");
 const path = require("path");
 
-const corsOptions = {
-  origin: process.env.CORS_HOST,
-  optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
-}
+
 
 /* GET home page. */
 router.get('/', function (req, res, next) {
   res.render('index', { title: 'OverHello - Backend' });
 });
 
-router.post("/", cors(corsOptions), async function (req, res, next) {
-// router.post("/", async function (req, res, next) {
+// router.post("/", cors(), async function (req, res, next) {
+router.post("/", async function (req, res, next) {
 
   const data = req.body;
 

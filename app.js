@@ -16,6 +16,7 @@ var srpreadSheetRouter = require('./routes/spreadsheet');
 const { dbSetClient, dbSetName } = require("./db/dbOperations");
 
 var app = express();
+
 connectToDb().then(client => {
   app.locals.mongoClient = client;
   dbSetClient(client);
@@ -26,7 +27,12 @@ connectToDb().then(client => {
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
-app.use(cors());
+const corsOptions = {
+  origin: process.env.CORS_HOST,
+  optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
+}
+
+app.use(cors(corsOptions));
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
