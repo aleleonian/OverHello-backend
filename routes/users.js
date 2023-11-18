@@ -36,6 +36,8 @@ router.get("/delete", async function (req, res) {
             // delete all the videos in /public/vids
             const deleteVidsOperation = await deleteAllVideos();
             // delete all the spreadsheets
+            let deleteSpreadsheetsUrl = process.env.THIS_SERVER + "/spreadsheet/delete/all";
+            const response = await fetch(deleteSpreadsheetsUrl);
             const resObj = {
                 success: true
             }

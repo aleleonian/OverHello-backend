@@ -69,15 +69,24 @@ async function deleteAllSpreadsheets() {
         const serviceAccountAuth = await connectToGoogleDrive();
         const doc = new GoogleSpreadsheet(process.env.SHEETS_ID, serviceAccountAuth);
         await doc.loadInfo();
+        const sheetCount = doc.sheetCount;
         const sheetsById = await doc.sheetsById;
         Object.keys(sheetsById).forEach(async sheetId => {
-            await doc.deleteSheet(sheetId);
+            console.log(sheetId);
+            if (sheetId != "2062785254") {
+                await doc.deleteSheet(sheetId);
+            }
+            else return;
         });
-        return true;
+        let responseObject = {};
+        responseObject.success = true;
+        return responseObject;
     }
     catch (error) {
         console.log(error);
-        return false;
+        let responseObject = {};
+        responseObject.success = false;
+        return responseObject;
     }
 }
 async function createSpreadSheet(name, equivalentArray) {
