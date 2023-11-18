@@ -2,10 +2,24 @@ const express = require('express');
 const router = express.Router();
 const { GoogleSpreadsheet } = require('google-spreadsheet');
 const { JWT } = require('google-auth-library');
-// const { dbFind } = require("../db/dbOperations");
 
 const sheetUrl = process.env.SHEETS_URL;
 
+router.get("/delete/all", async function (req, res) {
+    try {
+        let responseObject = await deleteAllSpreadsheets();
+        res.status(200).json(responseObject);
+
+    }
+    catch (error) {
+        console.log("/spreadsheet/delete/all error: ", error.message);
+        let resObj = {};
+        resObj.success = false;
+        resObj.message = error.message;
+        res.status(200).json(resObj);
+    }
+
+})
 router.post("/", async (req, res) => {
 
     let data = req.body;
@@ -32,42 +46,47 @@ router.post("/", async (req, res) => {
     }
 });
 
-// router.get("/get-url", async function (req, res) {
+function connectToGoogleDrive() {
+    return new Promise((resolve) => {
+        try {
+            const serviceAccountAuth = new JWT({
+                email: process.env.SHEETS_EMAIL,
+                key: JSON.parse(process.env.SHEETS_KEY),
+                scopes: [
+                    'https://www.googleapis.com/auth/spreadsheets',
+                ],
+            });
+            resolve(serviceAccountAuth);
+        }
+        catch (error) {
+            resolve(false);
+        }
+    })
+}
 
-//     const userId = req.query.userId;
-
-//     if (!userId) {
-//         let resObj = {
-//             success: false,
-//             message: "NEED USERID"
-//         }
-//         res.status(200).json(resObj);
-//     }
-//     else {
-//         let userFound = await dbFind("users", { userId: Number(userId) });
-//         console.log("userFound->" + JSON.stringify(userFound));
-//         let resObj = {
-//             success: true,
-//             spreadSheetUrl: userFound.spreadSheetUrl
-//         }
-//         res.status(200).json(resObj);
-//     }
-
-// });
-
+async function deleteAllSpreadsheets() {
+    try {
+        const serviceAccountAuth = await connectToGoogleDrive();
+        const doc = new GoogleSpreadsheet(process.env.SHEETS_ID, serviceAccountAuth);
+        await doc.loadInfo();
+        const sheetsById = await doc.sheetsById;
+        Object.keys(sheetsById).forEach(async sheetId => {
+            await doc.deleteSheet(sheetId);
+        });
+        return true;
+    }
+    catch (error) {
+        console.log(error);
+        return false;
+    }
+}
 async function createSpreadSheet(name, equivalentArray) {
     let responseObject = {};
 
     try {
-        const serviceAccountAuth = new JWT({
-            email: process.env.SHEETS_EMAIL,
-            key: JSON.parse(process.env.SHEETS_KEY),
-            scopes: [
-                'https://www.googleapis.com/auth/spreadsheets',
-            ],
-        });
+        const serviceAccountAuth = await connectToGoogleDrive();
 
-        const doc = new GoogleSpreadsheet('1VS0qw5cvPcOhOUp_qvLnwAjLtVw3TJrunubbPihEyZQ', serviceAccountAuth);
+        const doc = new GoogleSpreadsheet(process.env.SHEETS_ID, serviceAccountAuth);
 
         await doc.loadInfo();
 

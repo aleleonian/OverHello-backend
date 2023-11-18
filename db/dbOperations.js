@@ -47,5 +47,16 @@ async function dbFind(collection, data) {
     return foundItem;
 }
 
-module.exports = { dbInsert, dbFind, dbSetClient, dbSetName, dbUpdate }
+async function emptyCollection(collection) {
+
+    const db = dbClient.db(dbName);
+
+    const theCollection = db.collection(collection);
+
+    const emptyCollection = await theCollection.deleteMany({});
+
+    return emptyCollection;
+}
+
+module.exports = { dbInsert, dbFind, dbSetClient, dbSetName, dbUpdate, emptyCollection }
 

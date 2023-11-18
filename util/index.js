@@ -1,20 +1,47 @@
 const sharp = require('sharp');
+const path = require("path");
+const fsPromises = require("fs/promises");
 
 function wait(ms) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function emptyDir(folderPath) {
+
+  return new Promise(async (resolve) => {
+    try {
+      const files = await fsPromises.readdir(folderPath);
+      for (const file of files) {
+        await fsPromises.unlink(path.resolve(folderPath, file));
+      }
+      resolve(true);
+    } catch (err) {
+      resolve(false);
+      console.log(err);
+    }
+  });
+}
+
+function deleteAllVideos() {
+  const folderPath = path.resolve(__dirname, "../public/vids");
+  return emptyDir(folderPath);
+}
+function deleteAllPictures() {
+  const folderPath = path.resolve(__dirname, "../public/images");
+  return emptyDir(folderPath);
 }
 
 async function resizeImage(filePath, width, height, newFilePath) {
-    try {
-      await sharp(filePath)
-        .resize({
-          width: width,
-          height: height
-        })
-        .toFile(newFilePath);
-    } catch (error) {
-      console.log(error);
-    }
+  try {
+    await sharp(filePath)
+      .resize({
+        width: width,
+        height: height
+      })
+      .toFile(newFilePath);
+  } catch (error) {
+    console.log(error);
   }
+}
 
-module.exports = { wait, resizeImage };
+module.exports = { wait, resizeImage, deleteAllVideos, deleteAllPictures };
