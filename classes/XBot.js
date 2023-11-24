@@ -272,5 +272,24 @@ class XBot {
 
         return true;
     }
+    async inputVerificationCode(code) {
+        let foundAndClicked = await this.findAndClick(process.env.TWEETER_VERIFICATION_CODE_INPUT);
+        if (!foundAndClicked) {
+            console.log("Cant't find TWEETER_VERIFICATION_CODE_INPUT");
+            return false;
+        }
+        console.log("Found TWEETER_VERIFICATION_CODE_INPUT");
+
+        let foundAndTyped = await this.findAndType(process.env.TWEETER_VERIFICATION_CODE_INPUT, code);
+        if (!foundAndTyped) {
+            console.log("Can't find and type TWEETER_VERIFICATION_CODE_INPUT");
+            return false;
+        }
+        console.log("Found and typed TWEETER_VERIFICATION_CODE_INPUT");
+
+        await this.page.keyboard.press('Enter');
+
+        return true;
+    }
 }
 module.exports = XBot;

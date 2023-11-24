@@ -140,6 +140,38 @@ router.get('/tweet', async function (req, res, next) {
     return res.status(statusCode).json(responseObject);
 
 });
+router.get('/verify', async function (req, res, next) {
+    let responseObject = {};
+
+    if (req.app.locals.myXBot) {
+        if (req.query && req.query.code) {
+            const code = req.query.code;
+            const hasInputedCode = await req.app.locals.myXBot.inputVerificationCode(code);
+            responseObject.success = hasInputedCode;
+            if (hasInputedCode) {
+                responseObject.message = "Bot inputed verification code!";
+                statusCode = 200;
+            }
+            else {
+                responseObject.message = "Bot did input verification code";
+                statusCode = 301;
+            }
+        }
+        else {
+            responseObject.success = false;
+            responseObject.message = "No CODE?"
+            statusCode = 301;
+        }
+    }
+    else {
+        responseObject.success = false;
+        responseObject.message = "Bot not initiated."
+        statusCode = 301;
+    }
+
+    return res.status(statusCode).json(responseObject);
+
+});
 router.get('/lastposturl', async function (req, res, next) {
     let responseObject = {};
 
@@ -209,15 +241,20 @@ router.get('/login', async function (req, res, next) {
                 }
             }
             else {
+                console.log("We will now try to see if Twitter wants verification from us.")
                 let confirmedVerification = await req.app.locals.myXBot.twitterWantsVerification();
                 if (confirmedVerification.success) {
+                    console.log("Twitter wants verification from us!")
                     // now we must check the code that was sent to us
                     // (or read the email automatically)
                     // and send it to the browser.
                     // The thing is i don't know how to locate that input field yet.
-                    const filePath = path.resolve(__dirname, "page.html");
+                    const tookPic = await req.app.locals.myXBot.takePic();
+                    // const filePath = path.resolve(__dirname, "page.html");
                     fs.writeFileSync(filePath, confirmedVerification.pageContent);
-                    return res.download(filePath);
+                    responseObject.message = "Bot did NOT log in / Twitter wants verification code.";
+                    statusCode = 301;
+                    // res.download(filePath);
                 }
                 else {
                     console.log("Apparently Twitter does not suspect, so we're logged in?");
