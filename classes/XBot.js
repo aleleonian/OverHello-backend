@@ -181,15 +181,17 @@ class XBot {
             if (TwitterWantsToVerify) {
                 console.log("Alert: found VERIFICATION_TEXT!!");
                 const pageContent = await this.page.content();
-                console.log(pageContent);
+                // console.log(pageContent);
                 let response = {}
                 response.success = true;
                 response.pageContent = pageContent;
                 return response;
             }
             else {
-                console.log("Did NOT find SUSPICION_TEXT!")
-                return false;
+                console.log("Did NOT find SUSPICION_TEXT!");
+                let response = {}
+                response.success = false;
+                return response;
             }
         }
         catch (error) {

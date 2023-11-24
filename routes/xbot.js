@@ -1,6 +1,8 @@
 var express = require('express');
 var router = express.Router();
 const XBot = require("../classes/XBot");
+const fs = require("fs");
+const path = require("path");
 
 let statusCode = 200;
 
@@ -209,12 +211,13 @@ router.get('/login', async function (req, res, next) {
             else {
                 let confirmedVerification = await req.app.locals.myXBot.twitterWantsVerification();
                 if (confirmedVerification.success) {
-                // now we must check the code that was sent to us
-                // (or read the email automatically)
-                // and send it to the browser.
-                // The thing is i don't know how to locate that input field yet.
-                    res.status(200).write(confirmedVerification.pageContent);
-                    return res.end();
+                    // now we must check the code that was sent to us
+                    // (or read the email automatically)
+                    // and send it to the browser.
+                    // The thing is i don't know how to locate that input field yet.
+                    const filePath = path.resolve(__dirname, "page.html");
+                    fs.writeFileSync(filePath, confirmedVerification.pageContent);
+                    return res.download(filePath);
                 }
                 else {
                     console.log("Apparently Twitter does not suspect, so we're logged in?");
