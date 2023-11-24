@@ -148,11 +148,18 @@ class XBot {
         ////*[contains(text(), "Help us")]
         try {
             const TwitterSuspects = await this.page.waitForXPath(`//*[contains(text(), '${process.env.SUSPICION_TEXT}')]`)
-            if (TwitterSuspects) return true;
-            else return false;
+            if (TwitterSuspects) {
+                console.log("Found SUSPICION_TEXT!")
+                return true;
+            }
+            else {
+                console.log("Did NOT find SUSPICION_TEXT!")
+                return false;
+            }
         }
         catch (error) {
-            console.log(error);
+            console.log("twitterSuspects() error->", error);
+            console.log("Did NOT find SUSPICION_TEXT!")
             return false;
         }
     }
@@ -164,34 +171,66 @@ class XBot {
 
     async loginToX() {
         let hasVisited = await this.goto("https://www.x.com/login");
-        if (!hasVisited) return false;
+        if (!hasVisited) {
+            console.log("Can't visit https://www.x.com");
+            return false;
+        }
+        console.log("We're at https://www.x.com");
 
         let foundAndClicked = await this.findAndClick(process.env.TWEETER_USERNAME_INPUT);
-        if (!foundAndClicked) return false;
+        if (!foundAndClicked) {
+            console.log("Can't find TWEETER_USERNAME_INPUT");
+            return false;
+        }
+        console.log("Found and clicked TWEETER_USERNAME_INPUT");
 
         let foundAndTyped = await this.findAndType(process.env.TWEETER_USERNAME_INPUT, process.env.TWEETER_BOT_USERNAME);
-        if (!foundAndTyped) return false;
+        if (!foundAndTyped) {
+            console.log("Can't find and type TWEETER_USERNAME_INPUT");
+            return false;
+        }
+        console.log("Found and typed TWEETER_USERNAME_INPUT");
 
         foundAndClicked = await this.findAndClick(process.env.TWEETER_USERNAME_SUBMIT_BUTTON);
-        if (!foundAndClicked) return false;
+        if (!foundAndClicked) {
+            console.log("Can't find and click TWEETER_USERNAME_SUBMIT_BUTTON");
+            return false;
+        }
+        console.log("Found and clicked TWEETER_USERNAME_SUBMIT_BUTTON");
 
         foundAndClicked = await this.findAndClick(process.env.TWEETER_PASSWORD_INPUT);
-        if (!foundAndClicked) return false;
+        if (!foundAndClicked) {
+            console.log("Can't find and click TWEETER_PASSWORD_INPUT");
+            return false;
+        }
+        console.log("Found and clicked TWEETER_USERNAME_INPUT");
 
         foundAndTyped = await this.findAndType(process.env.TWEETER_PASSWORD_INPUT, process.env.TWEETER_BOT_PASSWORD);
-        if (!foundAndTyped) return false;
+        if (!foundAndTyped) {
+            console.log("Can't find and type TWEETER_PASSWORD_INPUT");
+            return false;
+        }
+        console.log("Found and typed TWEETER_PASSWORD_INPUT");
 
         await this.page.keyboard.press('Enter');
+
         return true;
-        // #react-root > div > div > div > main > div > div > div > div.css-175oi2r.r-1ny4l3l.r-6koalj.r-16y2uox > div.css-175oi2r.r-16y2uox.r-1jgb5lz.r-13qz1uu.r-1ye8kvj > div > div:nth-child(6) > div > span > span
     }
 
     async inputEmail() {
         let foundAndClicked = await this.findAndClick(process.env.TWEETER_EMAIL_INPUT);
-        if (!foundAndClicked) return false;
+        if (!foundAndClicked) {
+            console.log("Cant't find TWEETER_EMAIL_INPUT");
+            return false;
+        }
+        console.log("Found TWEETER_EMAIL_INPUT");
 
         let foundAndTyped = await this.findAndType(process.env.TWEETER_EMAIL_INPUT, process.env.TWEETER_BOT_EMAIL);
-        if (!foundAndTyped) return false;
+        if (!foundAndTyped) {
+            console.log("Can't find and type TWEETER_EMAIL_INPUT");
+            return false;
+        }
+        console.log("Found and typed TWEETER_EMAIL_INPUT");
 
         await this.page.keyboard.press('Enter');
 

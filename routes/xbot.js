@@ -169,15 +169,18 @@ router.get('/login', async function (req, res, next) {
         const hasLoggedIn = await req.app.locals.myXBot.loginToX();
         responseObject.success = hasLoggedIn;
         if (hasLoggedIn) {
+            console.log("Twitter Bot has logged in, we now will try to detect suspicion.");
             let confirmedSuspicion = await req.app.locals.myXBot.twitterSuspects();
             if (confirmedSuspicion) {
+                console.log("Twitter suspects, will try to convince them.");
                 let emailWasInput = await req.app.locals.myXBot.inputEmail();
-
                 if (emailWasInput) {
+                    console.log("We succeeded convincing twitter. We're in.");
                     responseObject.message = "Bot logged in!";
                     statusCode = 200;
                 }
                 else {
+                    console.log("We did not convince Elon :(");
                     responseObject.message = "Bot did NOT log in";
                     statusCode = 301;
                 }
@@ -186,7 +189,6 @@ router.get('/login', async function (req, res, next) {
                 responseObject.message = "Bot logged in!";
                 statusCode = 200;
             }
-
         }
         else {
             responseObject.message = "Bot did NOT log in";
