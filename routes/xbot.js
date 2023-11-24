@@ -32,7 +32,6 @@ router.get('/close', function (req, res, next) {
     }
     else {
         try {
-            console.log(myXBot);
             req.app.locals.myXBot.browser.close();
             req.app.locals.myXBot = null;
             responseObject.success = true;

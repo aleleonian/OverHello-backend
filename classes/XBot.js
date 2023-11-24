@@ -14,7 +14,7 @@ const exitCodeStrings = [
 ]
 
 let pupConfig = {
-    headless: false,
+    headless: true,
     defaultViewport: null,
     executablePath: process.env.EXECUTABLE_PATH,
     ignoreDefaultArgs: ["--enable-automation"]
