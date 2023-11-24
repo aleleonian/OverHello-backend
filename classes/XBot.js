@@ -109,24 +109,40 @@ class XBot {
     getUrl() {
         return this.page.url();
     }
+    async getLastTweetUrl(){
+        let hasVisited = await this.goto("https://www.x.com"+ "/" + process.env.TWEETER_BOT_USERNAME);
+        if (!hasVisited) return false;
+
+        let foundAndClicked = await this.findAndClick(process.env.TWEETER_LAST_POST_IN_PROFILE);
+        if (!foundAndClicked) return false;
+
+        return this.getUrl();
+    }
+
     async tweet(text) {
         let hasVisited = await this.goto("https://www.x.com");
         if (!hasVisited) return false;
+
         let foundAndClicked = await this.findAndClick(process.env.TWEETER_NEW_TWEET_INPUT);
         if (!foundAndClicked) return false;
+
         let foundAndTyped = await this.findAndType(process.env.TWEETER_NEW_TWEET_INPUT, text);
         if (!foundAndTyped) return false;
+
         foundAndClicked = await this.findAndClick(process.env.TWEETER_POST_BUTTON);
         return foundAndClicked;
     }
+
     async loginToX() {
         let hasVisited = await this.goto("https://www.x.com/login");
         if (!hasVisited) return false;
+
         let foundAndClicked = await this.findAndClick(process.env.TWEETER_USERNAME_INPUT);
         if (!foundAndClicked) return false;
 
         let foundAndTyped = await this.findAndType(process.env.TWEETER_USERNAME_INPUT, process.env.TWEETER_BOT_USERNAME);
         if (!foundAndTyped) return false;
+
         foundAndClicked = await this.findAndClick(process.env.TWEETER_USERNAME_SUBMIT_BUTTON);
         if (!foundAndClicked) return false;
        
