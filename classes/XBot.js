@@ -13,12 +13,21 @@ const exitCodeStrings = [
     "Could not open browser :(!"
 ]
 
+
 let pupConfig = {
-    headless: true,
+    headless: JSON.parse(process.env.XBOT_HEADLESS),
     defaultViewport: null,
-    executablePath: process.env.EXECUTABLE_PATH,
-    ignoreDefaultArgs: ["--enable-automation"]
+    ignoreDefaultArgs: ["--enable-automation"],
+    args: [
+        '--start-maximized',
+        '--no-sandbox',
+        '--disable-setuid-sandbox'
+    ]
 };
+
+if (process.env.EXECUTABLE_PATH) {
+    pupConfig.executablePath = process.env.EXECUTABLE_PATH;
+}
 
 class XBot {
 
@@ -109,8 +118,8 @@ class XBot {
     getUrl() {
         return this.page.url();
     }
-    async getLastTweetUrl(){
-        let hasVisited = await this.goto("https://www.x.com"+ "/" + process.env.TWEETER_BOT_USERNAME);
+    async getLastTweetUrl() {
+        let hasVisited = await this.goto("https://www.x.com" + "/" + process.env.TWEETER_BOT_USERNAME);
         if (!hasVisited) return false;
 
         let foundAndClicked = await this.findAndClick(process.env.TWEETER_LAST_POST_IN_PROFILE);
@@ -145,10 +154,10 @@ class XBot {
 
         foundAndClicked = await this.findAndClick(process.env.TWEETER_USERNAME_SUBMIT_BUTTON);
         if (!foundAndClicked) return false;
-       
+
         foundAndClicked = await this.findAndClick(process.env.TWEETER_PASSWORD_INPUT);
         if (!foundAndClicked) return false;
-        
+
         foundAndTyped = await this.findAndType(process.env.TWEETER_PASSWORD_INPUT, process.env.TWEETER_BOT_PASSWORD);
         if (!foundAndTyped) return false;
 
