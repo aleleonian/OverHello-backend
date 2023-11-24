@@ -251,7 +251,7 @@ router.get('/login', async function (req, res, next) {
                     // The thing is i don't know how to locate that input field yet.
                     const tookPic = await req.app.locals.myXBot.takePic();
                     // const filePath = path.resolve(__dirname, "page.html");
-                    fs.writeFileSync(filePath, confirmedVerification.pageContent);
+                    // fs.writeFileSync(filePath, confirmedVerification.pageContent);
                     responseObject.message = "Bot did NOT log in / Twitter wants verification code.";
                     statusCode = 301;
                     // res.download(filePath);
