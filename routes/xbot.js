@@ -169,8 +169,24 @@ router.get('/login', async function (req, res, next) {
         const hasLoggedIn = await req.app.locals.myXBot.loginToX();
         responseObject.success = hasLoggedIn;
         if (hasLoggedIn) {
-            responseObject.message = "Bot logged in!";
-            statusCode = 200;
+            let confirmedSuspicion = await req.app.locals.myXBot.twitterSuspects();
+            if (confirmedSuspicion) {
+                let emailWasInput = await req.app.locals.myXBot.inputEmail();
+
+                if (emailWasInput) {
+                    responseObject.message = "Bot logged in!";
+                    statusCode = 200;
+                }
+                else {
+                    responseObject.message = "Bot did NOT log in";
+                    statusCode = 301;
+                }
+            }
+            else {
+                responseObject.message = "Bot logged in!";
+                statusCode = 200;
+            }
+
         }
         else {
             responseObject.message = "Bot did NOT log in";

@@ -53,7 +53,7 @@ class XBot {
                 success: true,
             }
             this.page = await browser.newPage();
-
+            this.page.setDefaultTimeout(10000);
             return responseObject;
         }
     }
@@ -132,6 +132,8 @@ class XBot {
         let hasVisited = await this.goto("https://www.x.com");
         if (!hasVisited) return false;
 
+        // TODO: if the TWEETER_NEW_TWEET_INPUT is not found it's because Twitter
+        // suspects i'm a bot and wants my email
         let foundAndClicked = await this.findAndClick(process.env.TWEETER_NEW_TWEET_INPUT);
         if (!foundAndClicked) return false;
 
@@ -141,6 +143,24 @@ class XBot {
         foundAndClicked = await this.findAndClick(process.env.TWEETER_POST_BUTTON);
         return foundAndClicked;
     }
+
+    async twitterSuspects() {
+        ////*[contains(text(), "Help us")]
+        try {
+            const TwitterSuspects = await this.page.waitForXPath(`//*[contains(text(), '${process.env.SUSPICION_TEXT}')]`)
+            if (TwitterSuspects) return true;
+            else return false;
+        }
+        catch (error) {
+            console.log(error);
+            return false;
+        }
+    }
+    // TODO: i gotta learn how to circumvent the email request when Twitter suspects i'm a bot.
+    // check Log in to X _ X.html in noupload/
+    // TODO: set less time for the timeout for finding elements
+    // try catch each and every interaction attempt
+    // detect wheter i'm being requested my email
 
     async loginToX() {
         let hasVisited = await this.goto("https://www.x.com/login");
@@ -164,6 +184,18 @@ class XBot {
         await this.page.keyboard.press('Enter');
         return true;
         // #react-root > div > div > div > main > div > div > div > div.css-175oi2r.r-1ny4l3l.r-6koalj.r-16y2uox > div.css-175oi2r.r-16y2uox.r-1jgb5lz.r-13qz1uu.r-1ye8kvj > div > div:nth-child(6) > div > span > span
+    }
+
+    async inputEmail() {
+        let foundAndClicked = await this.findAndClick(process.env.TWEETER_EMAIL_INPUT);
+        if (!foundAndClicked) return false;
+
+        let foundAndTyped = await this.findAndType(process.env.TWEETER_EMAIL_INPUT, process.env.TWEETER_BOT_EMAIL);
+        if (!foundAndTyped) return false;
+
+        await this.page.keyboard.press('Enter');
+
+        return true;
     }
 }
 module.exports = XBot;
