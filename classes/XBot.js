@@ -70,7 +70,7 @@ class XBot {
             return false;
         }
     }
-    async takeAPic(filePath) {
+    async takePic(filePath) {
         if (!filePath) {
             filePath = path.resolve(__dirname, "../public/images/xBotSnap.jpg")
         }
@@ -79,7 +79,7 @@ class XBot {
             return true;
         }
         catch (error){
-            console.log("takeAPic() error->", error);
+            console.log("takePic() error->", error);
             return false;
         }
     }
@@ -164,6 +164,28 @@ class XBot {
             if (TwitterSuspects) {
                 console.log("Found SUSPICION_TEXT!")
                 return true;
+            }
+            else {
+                console.log("Did NOT find SUSPICION_TEXT!")
+                return false;
+            }
+        }
+        catch (error) {
+            console.log("twitterSuspects() exception! -> Did NOT find SUSPICION_TEXT!")
+            return false;
+        }
+    }
+    async twitterWantsVerification() {
+        try {
+            const TwitterWantsToVerify = await this.page.waitForXPath(`//*[contains(text(), '${process.env.VERIFICATION_TEXT}')]`, { timeout: 10000 })
+            if (TwitterWantsToVerify) {
+                console.log("Alert: found VERIFICATION_TEXT!!");
+                const pageContent = await this.page.content();
+                console.log(pageContent);
+                let response = {}
+                response.success = true;
+                response.pageContent = pageContent;
+                return response;
             }
             else {
                 console.log("Did NOT find SUSPICION_TEXT!")

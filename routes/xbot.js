@@ -165,7 +165,7 @@ router.get('/takepic', async function (req, res, next) {
     let responseObject = {};
 
     if (req.app.locals.myXBot) {
-        const tookPic = await req.app.locals.myXBot.takeAPic();
+        const tookPic = await req.app.locals.myXBot.takePic();
         if (tookPic) {
             return res.redirect("/images/xBotSnap.jpg");
         }
@@ -207,9 +207,20 @@ router.get('/login', async function (req, res, next) {
                 }
             }
             else {
-                console.log("Apparently Twitter does not suspect, so we're logged in?");
-                responseObject.message = "Bot logged in!";
-                statusCode = 200;
+                let confirmedVerification = await req.app.locals.myXBot.twitterWantsVerification();
+                if (confirmedVerification.success) {
+                // now we must check the code that was sent to us
+                // (or read the email automatically)
+                // and send it to the browser.
+                // The thing is i don't know how to locate that input field yet.
+                    res.status(200).write(confirmedVerification.pageContent);
+                    return res.end();
+                }
+                else {
+                    console.log("Apparently Twitter does not suspect, so we're logged in?");
+                    responseObject.message = "Bot logged in!";
+                    statusCode = 200;
+                }
             }
         }
         else {
