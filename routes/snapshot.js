@@ -2,7 +2,6 @@ const puppeteer = require('puppeteer');
 const express = require('express');
 const router = express.Router();
 const path = require("path");
-const { wait } = require("../util/index");
 
 router.get('/take', async (req, res) => {
 
