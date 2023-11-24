@@ -53,7 +53,7 @@ class XBot {
                 success: true,
             }
             this.page = await browser.newPage();
-            this.page.setDefaultTimeout(10000);
+            // this.page.setDefaultTimeout(10000);
             return responseObject;
         }
     }
