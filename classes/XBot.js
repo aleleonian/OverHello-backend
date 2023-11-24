@@ -2,6 +2,7 @@ const puppeteer = require('puppeteer-extra');
 const pluginStealth = require('puppeteer-extra-plugin-stealth');
 // const dataDirPlugin = require("puppeteer-extra-plugin-user-data-dir");
 puppeteer.use(pluginStealth());
+const path = require("path");
 // puppeteer.use(dataDirPlugin('/Users/aleleonian/Library/Application Support/Google/Chrome/Default'));
 
 // const puppeteerClassic = require("puppeteer");
@@ -66,6 +67,19 @@ class XBot {
         }
         catch (error) {
             console.log("Error! ", error);
+            return false;
+        }
+    }
+    async takeAPic(filePath) {
+        if (!filePath) {
+            filePath = path.resolve(__dirname, "../public/images/xBotSnap.jpg")
+        }
+        try {
+            await this.page.screenshot({ path: filePath });
+            return true;
+        }
+        catch (error){
+            console.log("takeAPic() error->", error);
             return false;
         }
     }
@@ -146,7 +160,7 @@ class XBot {
 
     async twitterSuspects() {
         try {
-            const TwitterSuspects = await this.page.waitForXPath(`//*[contains(text(), '${process.env.SUSPICION_TEXT}')]`,{timeout:10000})
+            const TwitterSuspects = await this.page.waitForXPath(`//*[contains(text(), '${process.env.SUSPICION_TEXT}')]`, { timeout: 10000 })
             if (TwitterSuspects) {
                 console.log("Found SUSPICION_TEXT!")
                 return true;
@@ -157,8 +171,7 @@ class XBot {
             }
         }
         catch (error) {
-            console.log("twitterSuspects() error->", error);
-            console.log("Did NOT find SUSPICION_TEXT!")
+            console.log("twitterSuspects() exception! -> Did NOT find SUSPICION_TEXT!")
             return false;
         }
     }

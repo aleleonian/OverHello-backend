@@ -161,6 +161,27 @@ router.get('/lastposturl', async function (req, res, next) {
     return res.status(statusCode).json(responseObject);
 
 });
+router.get('/takepic', async function (req, res, next) {
+    let responseObject = {};
+
+    if (req.app.locals.myXBot) {
+        const tookPic = await req.app.locals.myXBot.takeAPic();
+        if (tookPic) {
+            return res.redirect("/images/xBotSnap.jpg");
+        }
+        else {
+            responseObject.message = "Did not get the pic";
+            statusCode = 301;
+        }
+    }
+    else {
+        responseObject.success = false;
+        responseObject.message = "Bot not initiated."
+        statusCode = 301;
+    }
+    return res.status(statusCode).json(responseObject);
+
+});
 
 router.get('/login', async function (req, res, next) {
     let responseObject = {};
