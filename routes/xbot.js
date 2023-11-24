@@ -186,6 +186,7 @@ router.get('/login', async function (req, res, next) {
                 }
             }
             else {
+                console.log("Apparently Twitter does not suspect, so we're logged in?");
                 responseObject.message = "Bot logged in!";
                 statusCode = 200;
             }

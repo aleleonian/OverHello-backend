@@ -145,9 +145,8 @@ class XBot {
     }
 
     async twitterSuspects() {
-        ////*[contains(text(), "Help us")]
         try {
-            const TwitterSuspects = await this.page.waitForXPath(`//*[contains(text(), '${process.env.SUSPICION_TEXT}')]`)
+            const TwitterSuspects = await this.page.waitForXPath(`//*[contains(text(), '${process.env.SUSPICION_TEXT}')]`,{timeout:10000})
             if (TwitterSuspects) {
                 console.log("Found SUSPICION_TEXT!")
                 return true;
