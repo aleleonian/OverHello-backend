@@ -28,6 +28,7 @@ router.post("/", async function (req, res, next) {
 
   try {
 
+    // 1) create the user in teh db
     const insertResult = await dbInsert("users",
       {
         userId: userId,
@@ -53,6 +54,7 @@ router.post("/", async function (req, res, next) {
     return res.status(500).json(resObj);
   }
 
+  // 2) scrape the site
   let scrapedData = await scrapeNameInfo(userName);
 
   if (scrapedData) {
@@ -63,6 +65,7 @@ router.post("/", async function (req, res, next) {
 
   delete scrapedData.equivalentsArray;
 
+  // 3) check our db looking for that name
   let nameWasFound = await dbFind("names", { Name: userName });
 
   response.name = userName;
@@ -70,7 +73,7 @@ router.post("/", async function (req, res, next) {
 
   if (nameWasFound) response.nameWasFound = true;
 
-  // here we return and we then continue working in the background
+  // 4) here we return and we then continue working in the background
   res.status(200).json(response);
 
   let spreadSheetData = {
@@ -79,7 +82,7 @@ router.post("/", async function (req, res, next) {
     names: equivalentsArray
   }
 
-  // let's generate the spreadsheet in google drive
+  // 5) let's generate the spreadsheet in google drive
   response = await fetch(process.env.THIS_SERVER + '/spreadsheet', {
     method: "POST",
     body: JSON.stringify(spreadSheetData),
@@ -97,7 +100,7 @@ router.post("/", async function (req, res, next) {
     console.log("Error generating spreadsheet!->",postResponse.message)
   }
 
-  // let's take the snapshot of that spreadsheet
+  // 6) let's take the snapshot of that spreadsheet
   let snapshotUrl = process.env.THIS_SERVER + "/snapshot/take?userId=" + userId + "&url=" + encodeURIComponent(postResponse.sheetUrl);
   console.log("snapshotUrl->", snapshotUrl)
   response = await fetch(snapshotUrl);
@@ -111,6 +114,8 @@ router.post("/", async function (req, res, next) {
   else {
     console.log(response.message);
   }
+
+  // 7) generate the tweet
 })
 
 module.exports = router;
