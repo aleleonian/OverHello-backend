@@ -13,7 +13,6 @@ var mergeRouter = require('./routes/merge');
 var videosRouter = require('./routes/videos');
 var snapshotRouter = require('./routes/snapshot');
 var srpreadSheetRouter = require('./routes/spreadsheet');
-var xBotRouter = require('./routes/xbot');
 
 const { dbSetClient, dbSetName } = require("./db/dbOperations");
 
@@ -46,7 +45,6 @@ app.use('/merge', mergeRouter);
 app.use('/videos', videosRouter);
 app.use('/snapshot', snapshotRouter);
 app.use('/spreadsheet', srpreadSheetRouter);
-app.use('/xbot', xBotRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

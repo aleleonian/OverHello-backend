@@ -3,7 +3,7 @@ const router = express.Router();
 // const cors = require('cors')
 const cheerio = require("cheerio");
 const { dbFind, dbInsert, dbUpdate } = require("../db/dbOperations");
-const { resizeImage } = require("../util/index");
+const { resizeImage, wait } = require("../util/index");
 const path = require("path");
 
 
@@ -97,7 +97,7 @@ router.post("/", async function (req, res, next) {
     console.log(updateResult);
   }
   else {
-    console.log("Error generating spreadsheet!->",postResponse.message)
+    console.log("Error generating spreadsheet!->", postResponse.message)
   }
 
   // 6) let's take the snapshot of that spreadsheet
@@ -116,7 +116,69 @@ router.post("/", async function (req, res, next) {
   }
 
   // 7) generate the tweet
-})
+  // should check if the server is alive and logged in
+  response = await fetch(process.env.XBOT_SERVER + "/xbot/ping");
+  response = JSON.parse(await response.text());
+  if (!response.success) {
+    //somehow indicate in the db there's no tweeter action for this user.
+    const updateResult = await dbUpdate("users", { userId: userId }, { "tweet": false });
+
+  }
+  else {
+    // check if the xBot is logged in, otherwise log it in.
+    response = await fetch(process.env.XBOT_SERVER + "/xbot/isloggedin");
+    response = JSON.parse(await response.text());
+    if (!response.success) {
+      await fetch(process.env.XBOT_SERVER + "/xbot/init");
+      response = await fetch(process.env.XBOT_SERVER + "/xbot/login");
+      response = JSON.parse(await response.text());
+      if (!response.success) {
+        //somehow indicate in the db there's no tweeter action for this user.
+        const updateResult = await dbUpdate("users", { userId: userId }, { "tweet": false });
+      }
+    }
+    response = await fetch(process.env.XBOT_SERVER + "/xbot/tweet?text=hey there " + userName + "&userId=" + userId);
+    response = JSON.parse(await response.text());
+    if (response.success) {
+      const updateResult = await dbUpdate("users", { userId: userId }, { "tweet": response.url });
+    }
+    else {
+      //{"success":false,"message":"Bot did NOT tweet: xBot is busy"}
+      if (response.message.indexOf("xBot is busy") > -1) {
+        console.log("xBot is busy, will wait.")
+        // this means the bot is busy and will eventually have the tweet ready
+        // here we gotta wait and try to fetch process.env.XBOT_SERVER/xbot/gettweet?userId = userId
+        let counter = 0;
+        let tweet;
+        while (counter < 10) {
+          await wait(10000);
+          response = await fetch(process.env.XBOT_SERVER + "/xbot/gettweet?userId=" + userId);
+          response = await response.text();
+          console.log("Tried to fetch tweet for " + userId + " and i got this: " + response);
+          response = JSON.parse(response);
+          if (response.url) {
+            tweet = response.url;
+            console.log("I got tweet for " + userId + " = " + tweet)
+            break;
+          }
+          counter++
+        }
+        if (tweet) {
+          const updateResult = await dbUpdate("users", { userId: userId }, { "tweet": tweet });
+        }
+        else {
+          const updateResult = await dbUpdate("users", { userId: userId }, { "tweet": false });
+        }
+      }
+      else {
+        const updateResult = await dbUpdate("users", { userId: userId }, { "tweet": false });
+
+      }
+    }
+    // response.data holds the url for the users tweet.
+    // we gotta update the db with the url for the tweet for the user.
+  }
+});
 
 module.exports = router;
 
