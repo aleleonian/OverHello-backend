@@ -57,8 +57,6 @@ router.post("/", async function (req, res, next) {
   // 2) scrape the site
   let scrapedData = await scrapeNameInfo(userName);
 
-  console.log("scrapedData->", scrapedData);
-
   if (scrapedData) {
     response.scrapedData = scrapedData;
   }
@@ -109,8 +107,6 @@ async function scrapeNameInfo(name) {
 
     let nameData = $('.namedef').text();
 
-    console.log("nameData->", nameData);
-
     if (nameData.length == 0 || nameData == "") {
       return false;
     }
@@ -118,8 +114,6 @@ async function scrapeNameInfo(name) {
       nameData = nameData.substring(0, 497) + "...";
     }
     scrapedData.nameData = nameData;
-
-    console.log("scrapedData.nameData->", scrapedData.nameData);
 
   } catch (error) {
     console.log("Error fetching name data->", error);
@@ -163,6 +157,7 @@ async function tweet(userName, userId) {
   response = JSON.parse(await response.text());
   if (!response.success) {
     //somehow indicate in the db there's no tweeter action for this user.
+    console.log("XBOT_SERVER ping failed!")
     return noTweetForThisUser();
   }
   else {
@@ -170,6 +165,8 @@ async function tweet(userName, userId) {
     response = await fetch(process.env.XBOT_SERVER + "/xbot/isloggedin");
     response = JSON.parse(await response.text());
     if (!response.success) {
+      console.log("XBOT_SERVER not logged in, will login.")
+
       await fetch(process.env.XBOT_SERVER + "/xbot/init");
       response = await fetch(process.env.XBOT_SERVER + "/xbot/login");
       response = JSON.parse(await response.text());
@@ -178,8 +175,11 @@ async function tweet(userName, userId) {
       }
     }
     //TODO this tweet sometimes fails!
+    console.log("XBOT_SERVER logged in, will tweet.")
     response = await fetch(process.env.XBOT_SERVER + "/xbot/tweet?text=" + encodeURIComponent("Hello " + userName + "! How are you?") + "&userId=" + userId);
     response = JSON.parse(await response.text());
+    console.log("tweet response->", JSON.stringify(response));
+
     if (response.success) {
       //now we got to retrieve the last url's tweet
       response = await fetch(process.env.XBOT_SERVER + "/xbot/lastposturl");
