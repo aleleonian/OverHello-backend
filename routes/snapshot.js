@@ -1,4 +1,7 @@
-const puppeteer = require('puppeteer');
+const puppeteer = require('puppeteer-extra');
+const pluginStealth = require('puppeteer-extra-plugin-stealth');
+puppeteer.use(pluginStealth());
+
 const express = require('express');
 const router = express.Router();
 const path = require("path");
@@ -47,6 +50,7 @@ async function takeSnapShot(url, filePath) {
         const browser = await puppeteer.launch({
             headless: true,
             defaultViewport: null,
+            ignoreDefaultArgs: ["--enable-automation"],
             args: [
                 '--start-maximized',
                 '--no-sandbox',

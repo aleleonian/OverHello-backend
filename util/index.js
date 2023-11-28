@@ -44,4 +44,20 @@ async function resizeImage(filePath, width, height, newFilePath) {
   }
 }
 
-module.exports = { wait, resizeImage, deleteAllVideos, deleteAllPictures };
+async function cropImage(filePath, width, height, top, left, newFilePath) {
+
+  try {
+    await sharp(filePath).extract({ width: width, height: height, left: left, top: top }).toFile(newFilePath)
+      .then(function (new_file_info) {
+        console.log("Image cropped and saved");
+      })
+      .catch(function (error) {
+        console.log("An error occured->", error);
+      });
+  }
+  catch (error) {
+    console.log(error);
+  }
+
+}
+module.exports = { wait, resizeImage, deleteAllVideos, deleteAllPictures , cropImage};

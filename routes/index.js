@@ -57,6 +57,8 @@ router.post("/", async function (req, res, next) {
   // 2) scrape the site
   let scrapedData = await scrapeNameInfo(userName);
 
+  console.log("scrapedData->", scrapedData);
+
   if (scrapedData) {
     response.scrapedData = scrapedData;
   }
@@ -76,46 +78,11 @@ router.post("/", async function (req, res, next) {
   // 4) here we return and we then continue working in the background
   res.status(200).json(response);
 
-  let spreadSheetData = {
-    name: userName,
-    userId: userId,
-    names: equivalentsArray
-  }
-
   // 5) let's generate the spreadsheet in google drive
-  response = await fetch(process.env.THIS_SERVER + '/spreadsheet', {
-    method: "POST",
-    body: JSON.stringify(spreadSheetData),
-    headers: { "Content-type": "application/json; charset=UTF-8" }
-  });
-
-  let postResponse = JSON.parse(await response.text());
-
-  //we gota record the responseObject.sheetUrl into the db for this user
-  if (postResponse.success) {
-    const updateResult = await dbUpdate("users", { userId: userId }, { "spreadSheetUrl": postResponse.sheetUrl });
-    console.log(updateResult);
+  // if there's
+  if (scrapedData && equivalentsArray) {
+    spreadSheetStuff(userName, userId, equivalentsArray)
   }
-  else {
-    console.log("Error generating spreadsheet!->", postResponse.message)
-  }
-
-  // 6) let's take the snapshot of that spreadsheet
-  let snapshotUrl = process.env.THIS_SERVER + "/snapshot/take?userId=" + userId + "&url=" + encodeURIComponent(postResponse.sheetUrl) + "&prefix=spreadsheet";
-  console.log("snapshotUrl->", snapshotUrl)
-  response = await fetch(snapshotUrl);
-  response = JSON.parse(await response.text());
-  if (response.success) {
-    const modifiedFilePath = response.fileName.replace("-original", "");
-    await resizeImage(path.resolve(__dirname, "../public/images/" + response.fileName), 400, 300, path.resolve(__dirname, "../public/images/" + modifiedFilePath));
-    const updateResult = await dbUpdate("users", { userId: userId }, { "spreadSheetSnapshot": modifiedFilePath });
-    // resize the image
-    console.log(updateResult);
-  }
-  else {
-    console.log(response.message);
-  }
-
   // 7) generate the tweet
   // should check if the server is alive and logged in
   tweet(userName, userId);
@@ -142,14 +109,21 @@ async function scrapeNameInfo(name) {
 
     let nameData = $('.namedef').text();
 
-    if (nameData.length > 500) {
+    console.log("nameData->", nameData);
+
+    if (nameData.length == 0 || nameData == "") {
+      return false;
+    }
+    else if (nameData.length > 500) {
       nameData = nameData.substring(0, 497) + "...";
     }
     scrapedData.nameData = nameData;
 
+    console.log("scrapedData.nameData->", scrapedData.nameData);
+
   } catch (error) {
     console.log("Error fetching name data->", error);
-    scrapedData.nameData = null;
+    return false;
   }
   try {
     url = `https://www.behindthename.com/name/${name}/related`;
@@ -203,6 +177,7 @@ async function tweet(userName, userId) {
         return noTweetForThisUser();
       }
     }
+    //TODO this tweet sometimes fails!
     response = await fetch(process.env.XBOT_SERVER + "/xbot/tweet?text=" + encodeURIComponent("Hello " + userName + "! How are you?") + "&userId=" + userId);
     response = JSON.parse(await response.text());
     if (response.success) {
@@ -251,12 +226,54 @@ async function tweet(userName, userId) {
     response = await fetch(snapshotUrl);
     response = JSON.parse(await response.text());
     if (response.success) {
-      await resizeImage(path.resolve(__dirname, "../public/images/" + response.fileName), 400, 300, path.resolve(__dirname, "../public/images/" + response.fileName.replace("-original", "")));
-      await dbUpdate("users", { userId: userId }, { "tweetSnapshot": response.fileName });
+      const updatedFilePath = response.fileName.replace("-original", "");
+      await resizeImage(path.resolve(__dirname, "../public/images/" + response.fileName), 400, 300, path.resolve(__dirname, "../public/images/" + updatedFilePath));
+      await dbUpdate("users", { userId: userId }, { "tweetSnapshot": updatedFilePath });
     }
     else {
       console.log(response.message);
     }
 
+  }
+}
+
+async function spreadSheetStuff(userName, userId, equivalentsArray) {
+
+  let spreadSheetData = {
+    name: userName,
+    userId: userId,
+    names: equivalentsArray
+  }
+  response = await fetch(process.env.THIS_SERVER + '/spreadsheet', {
+    method: "POST",
+    body: JSON.stringify(spreadSheetData),
+    headers: { "Content-type": "application/json; charset=UTF-8" }
+  });
+
+  let postResponse = JSON.parse(await response.text());
+
+  //we gota record the responseObject.sheetUrl into the db for this user
+  if (postResponse.success) {
+    const updateResult = await dbUpdate("users", { userId: userId }, { "spreadSheetUrl": postResponse.sheetUrl });
+    console.log(updateResult);
+  }
+  else {
+    console.log("Error generating spreadsheet!->", postResponse.message)
+  }
+
+  // 6) let's take the snapshot of that spreadsheet
+  let snapshotUrl = process.env.THIS_SERVER + "/snapshot/take?userId=" + userId + "&url=" + encodeURIComponent(postResponse.sheetUrl) + "&prefix=spreadsheet";
+  console.log("snapshotUrl->", snapshotUrl)
+  response = await fetch(snapshotUrl);
+  response = JSON.parse(await response.text());
+  if (response.success) {
+    const modifiedFilePath = response.fileName.replace("-original", "");
+    await resizeImage(path.resolve(__dirname, "../public/images/" + response.fileName), 400, 300, path.resolve(__dirname, "../public/images/" + modifiedFilePath));
+    const updateResult = await dbUpdate("users", { userId: userId }, { "spreadSheetSnapshot": modifiedFilePath });
+    // resize the image
+    console.log(updateResult);
+  }
+  else {
+    console.log(response.message);
   }
 }
