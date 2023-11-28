@@ -22,18 +22,13 @@ async function dbInsert(collection, data) {
 
 async function dbUpdate(collection, filter, data) {
 
-    console.log("filter->", filter);
-    console.log("data->", data);
-
     const db = dbClient.db(dbName);
 
     const theCollection = db.collection(collection);
 
-    const updateResult = await theCollection.updateOne(
-        filter,
-        { $set: data });
-    return updateResult;
+    const updateResult = await theCollection.updateOne(filter, { $set: data });
 
+    return updateResult;
 }
 
 async function dbFind(collection, data) {

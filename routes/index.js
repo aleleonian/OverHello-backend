@@ -101,13 +101,14 @@ router.post("/", async function (req, res, next) {
   }
 
   // 6) let's take the snapshot of that spreadsheet
-  let snapshotUrl = process.env.THIS_SERVER + "/snapshot/take?userId=" + userId + "&url=" + encodeURIComponent(postResponse.sheetUrl);
+  let snapshotUrl = process.env.THIS_SERVER + "/snapshot/take?userId=" + userId + "&url=" + encodeURIComponent(postResponse.sheetUrl) + "&prefix=spreadsheet";
   console.log("snapshotUrl->", snapshotUrl)
   response = await fetch(snapshotUrl);
   response = JSON.parse(await response.text());
   if (response.success) {
-    await resizeImage(path.resolve(__dirname, "../public/images/" + response.fileName), 400, 300, path.resolve(__dirname, "../public/images/" + response.fileName.replace("-original", "")));
-    const updateResult = await dbUpdate("users", { userId: userId }, { "spreadSheetSnapshot": response.fileName });
+    const modifiedFilePath = response.fileName.replace("-original", "");
+    await resizeImage(path.resolve(__dirname, "../public/images/" + response.fileName), 400, 300, path.resolve(__dirname, "../public/images/" + modifiedFilePath));
+    const updateResult = await dbUpdate("users", { userId: userId }, { "spreadSheetSnapshot": modifiedFilePath });
     // resize the image
     console.log(updateResult);
   }
@@ -202,30 +203,33 @@ async function tweet(userName, userId) {
         return noTweetForThisUser();
       }
     }
-    response = await fetch(process.env.XBOT_SERVER + "/xbot/tweet?text=hey there " + userName + "&userId=" + userId);
+    response = await fetch(process.env.XBOT_SERVER + "/xbot/tweet?text=" + encodeURIComponent("Hello " + userName + "! How are you?") + "&userId=" + userId);
     response = JSON.parse(await response.text());
     if (response.success) {
-      dbUpdate("users", { userId: userId }, { "tweet": response.url });
+      const tweetUrl = response.url;
+      dbUpdate("users", { userId: userId }, { "tweet": tweetUrl });
+      tweetSnapshot(userId, response.url);
     }
     else {
       if (response.message.indexOf("xBot is busy") > -1) {
         console.log("xBot is busy, will wait.")
         // this means the bot is busy and will eventually have the tweet ready
         let counter = 0;
-        let tweet;
+        let tweetUrl;
         while (counter < 10) {
           await wait(10000);
           response = await fetch(process.env.XBOT_SERVER + "/xbot/gettweet?userId=" + userId);
           response = await response.text();
           response = JSON.parse(response);
           if (response.url) {
-            tweet = response.url;
+            tweetUrl = response.url;
             break;
           }
           counter++
         }
-        if (tweet) {
-          dbUpdate("users", { userId: userId }, { "tweet": tweet });
+        if (tweetUrl) {
+          dbUpdate("users", { userId: userId }, { "tweetUrl": tweetUrl });
+          tweetSnapshot(userId, tweetUrl);
         }
         else {
           return noTweetForThisUser();
@@ -238,6 +242,21 @@ async function tweet(userName, userId) {
   }
 
   function noTweetForThisUser() {
-    dbUpdate("users", { userId: userId }, { "tweet": false })
+    dbUpdate("users", { userId: userId }, { "tweetUrl": false })
+  }
+
+  async function tweetSnapshot(userId, tweetUrl) {
+    let snapshotUrl = process.env.THIS_SERVER + "/snapshot/take?userId=" + userId + "&url=" + encodeURIComponent(tweetUrl) + "&prefix=tweet";
+    console.log("snapshotUrl->", snapshotUrl);
+    response = await fetch(snapshotUrl);
+    response = JSON.parse(await response.text());
+    if (response.success) {
+      await resizeImage(path.resolve(__dirname, "../public/images/" + response.fileName), 400, 300, path.resolve(__dirname, "../public/images/" + response.fileName.replace("-original", "")));
+      await dbUpdate("users", { userId: userId }, { "tweetSnapshot": response.fileName });
+    }
+    else {
+      console.log(response.message);
+    }
+
   }
 }

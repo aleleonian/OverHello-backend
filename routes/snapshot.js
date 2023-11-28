@@ -7,12 +7,10 @@ router.get('/take', async (req, res) => {
 
     const url = decodeURIComponent(req.query.url);
     const userId = req.query.userId;
-
-    console.log("url->", url);
-    console.log("userId->", userId);
+    const prefix = req.query.prefix;
 
     if (url && userId) {
-        const fileName = userId + "-snapshot-original.jpg";
+        const fileName = userId + "-" + prefix + "-snapshot-original.jpg";
 
         const filePath = path.resolve(__dirname, `../public/images/${fileName}`);
 
