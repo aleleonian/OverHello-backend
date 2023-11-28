@@ -182,7 +182,7 @@ async function tweet(userName, userId) {
     response = JSON.parse(await response.text());
     if (response.success) {
       //now we got to retrieve the last url's tweet
-      response = await fetch(process.env.XBOT_SERVER + "/xbot/lasposturl");
+      response = await fetch(process.env.XBOT_SERVER + "/xbot/lastposturl");
       response = JSON.parse(await response.text());
       if (response.url) {
         const tweetUrl = response.url;
