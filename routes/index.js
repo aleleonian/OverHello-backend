@@ -181,9 +181,15 @@ async function tweet(userName, userId) {
     response = await fetch(process.env.XBOT_SERVER + "/xbot/tweet?text=" + encodeURIComponent("Hello " + userName + "! How are you?") + "&userId=" + userId);
     response = JSON.parse(await response.text());
     if (response.success) {
-      const tweetUrl = response.url;
-      dbUpdate("users", { userId: userId }, { "tweet": tweetUrl });
-      tweetSnapshot(userId, response.url);
+      //now we got to retrieve the last url's tweet
+      response = await fetch(process.env.XBOT_SERVER + "/xbot/lasposturl");
+      response = JSON.parse(await response.text());
+      if (response.url) {
+        const tweetUrl = response.url;
+        dbUpdate("users", { userId: userId }, { "tweet": tweetUrl });
+        tweetSnapshot(userId, response.url);
+      }
+      else return noTweetForThisUser();
     }
     else {
       if (response.message.indexOf("xBot is busy") > -1) {
