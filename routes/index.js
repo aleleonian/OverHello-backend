@@ -153,76 +153,84 @@ function generateUserId(name) {
 }
 
 async function tweet(userName, userId) {
-  response = await fetch(process.env.XBOT_SERVER + "/xbot/ping");
-  response = JSON.parse(await response.text());
-  if (!response.success) {
-    //somehow indicate in the db there's no tweeter action for this user.
-    console.log("XBOT_SERVER ping failed!")
-    return noTweetForThisUser();
-  }
-  else {
-    // check if the xBot is logged in, otherwise log it in.
-    response = await fetch(process.env.XBOT_SERVER + "/xbot/isloggedin");
+  try {
+    response = await fetch(process.env.XBOT_SERVER + "/xbot/ping");
     response = JSON.parse(await response.text());
     if (!response.success) {
-      console.log("XBOT_SERVER not logged in, will login.")
-
-      await fetch(process.env.XBOT_SERVER + "/xbot/init");
-      response = await fetch(process.env.XBOT_SERVER + "/xbot/login");
-      response = JSON.parse(await response.text());
-      if (!response.success) {
-        return noTweetForThisUser();
-      }
-    }
-    let tweetText = await dbGetARandomGreeting();
-    tweetText = tweetText.replace("%userName%", userName);
-    console.log("XBOT_SERVER logged in, will tweet.")
-    response = await fetch(process.env.XBOT_SERVER + "/xbot/tweet?text=" + encodeURIComponent(tweetText) + "&userId=" + userId);
-    response = JSON.parse(await response.text());
-    console.log("tweet response->", JSON.stringify(response));
-
-    if (response.success) {
-      //now we got to retrieve the last url's tweet
-      response = await fetch(process.env.XBOT_SERVER + "/xbot/lastposturl");
-      response = JSON.parse(await response.text());
-      if (response.url) {
-        const tweetUrl = response.url;
-        dbUpdate("users", { userId: userId }, { "tweet": tweetUrl });
-        tweetSnapshot(userId, response.url);
-      }
-      else return noTweetForThisUser();
+      //somehow indicate in the db there's no tweeter action for this user.
+      console.log("XBOT_SERVER ping failed!")
+      return noTweetForThisUser();
     }
     else {
-      if (response.message.indexOf("xBot is busy") > -1) {
-        console.log("xBot is busy, will wait.")
-        // this means the bot is busy and will eventually have the tweet ready
-        let counter = 0;
-        let tweetUrl;
-        while (counter < 10) {
-          await wait(10000);
-          response = await fetch(process.env.XBOT_SERVER + "/xbot/gettweet?userId=" + userId);
-          response = await response.text();
-          response = JSON.parse(response);
-          if (response.url) {
-            tweetUrl = response.url;
-            break;
-          }
-          counter++
+      // check if the xBot is logged in, otherwise log it in.
+      response = await fetch(process.env.XBOT_SERVER + "/xbot/isloggedin");
+      response = JSON.parse(await response.text());
+      if (!response.success) {
+        console.log("XBOT_SERVER not logged in, will login.")
+
+        await fetch(process.env.XBOT_SERVER + "/xbot/init");
+        response = await fetch(process.env.XBOT_SERVER + "/xbot/login");
+        response = JSON.parse(await response.text());
+        if (!response.success) {
+          return noTweetForThisUser();
         }
-        if (tweetUrl) {
-          dbUpdate("users", { userId: userId }, { "tweetUrl": tweetUrl });
-          tweetSnapshot(userId, tweetUrl);
+      }
+      let tweetText = await dbGetARandomGreeting();
+      tweetText = tweetText.replace("%userName%", userName);
+      console.log("XBOT_SERVER logged in, will tweet.")
+      response = await fetch(process.env.XBOT_SERVER + "/xbot/tweet?text=" + encodeURIComponent(tweetText) + "&userId=" + userId);
+      response = JSON.parse(await response.text());
+      console.log("tweet response->", JSON.stringify(response));
+
+      if (response.success) {
+        //now we got to retrieve the last url's tweet
+        response = await fetch(process.env.XBOT_SERVER + "/xbot/lastposturl");
+        response = JSON.parse(await response.text());
+        if (response.url) {
+          const tweetUrl = response.url;
+          dbUpdate("users", { userId: userId }, { "tweet": tweetUrl });
+          tweetSnapshot(userId, response.url);
+        }
+        else return noTweetForThisUser();
+      }
+      else {
+        if (response.message.indexOf("xBot is busy") > -1) {
+          console.log("xBot is busy, will wait.")
+          // this means the bot is busy and will eventually have the tweet ready
+          let counter = 0;
+          let tweetUrl;
+          while (counter < 10) {
+            await wait(10000);
+            response = await fetch(process.env.XBOT_SERVER + "/xbot/gettweet?userId=" + userId);
+            response = await response.text();
+            response = JSON.parse(response);
+            if (response.url) {
+              tweetUrl = response.url;
+              break;
+            }
+            counter++
+          }
+          if (tweetUrl) {
+            dbUpdate("users", { userId: userId }, { "tweetUrl": tweetUrl });
+            tweetSnapshot(userId, tweetUrl);
+          }
+          else {
+            return noTweetForThisUser();
+          }
         }
         else {
           return noTweetForThisUser();
         }
       }
-      else {
-        return noTweetForThisUser();
-      }
     }
-  }
 
+  }
+  catch (error) {
+    console.log("tweet() error->", error);
+    return noTweetForThisUser();
+  }
+  
+  //// functions
   function noTweetForThisUser() {
     dbUpdate("users", { userId: userId }, { "tweetUrl": false })
   }
@@ -237,11 +245,11 @@ async function tweet(userName, userId) {
 
       const left = 250;
       const top = 100;
-      const right = 800;
+      const right = 1400;
       const bottom = 400;
-
+      
       const width = right - left
-      const height = bottom - top;
+      const height = bottom - top;;
 
       await cropImage(path.resolve(__dirname, "../public/images/" + response.fileName), width, height, top, left, path.resolve(__dirname, "../public/images/" + updatedFilePath));
       await dbUpdate("users", { userId: userId }, { "tweetSnapshot": updatedFilePath });
@@ -284,12 +292,12 @@ async function spreadSheetStuff(userName, userId, equivalentsArray) {
   response = JSON.parse(await response.text());
   if (response.success) {
     const modifiedFilePath = response.fileName.replace("-original", "");
-    
+
     const left = 0;
     const top = 0;
     const width = 500 - left
     const height = 500 - top;
-    
+
     await cropImage(path.resolve(__dirname, "../public/images/" + response.fileName), width, height, top, left, path.resolve(__dirname, "../public/images/" + modifiedFilePath));
     // await resizeImage(path.resolve(__dirname, "../public/images/" + response.fileName), 400, 300, path.resolve(__dirname, "../public/images/" + modifiedFilePath));
     await dbUpdate("users", { userId: userId }, { "spreadSheetSnapshot": modifiedFilePath });
