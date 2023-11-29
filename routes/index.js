@@ -237,7 +237,7 @@ async function tweet(userName, userId) {
 
       const left = 250;
       const top = 100;
-      const right = 1440;
+      const right = 800;
       const bottom = 400;
 
       const width = right - left
