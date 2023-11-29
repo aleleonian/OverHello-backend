@@ -47,7 +47,7 @@ async function resizeImage(filePath, width, height, newFilePath) {
 async function cropImage(filePath, width, height, top, left, newFilePath) {
 
   try {
-    await sharp(filePath).extract({ width: width, height: height, left: left, top: top }).toFile(newFilePath)
+    await sharp(filePath).rotate().extract({ width: width, height: height, left: left, top: top }).toFile(newFilePath)
       .then(function (new_file_info) {
         console.log("Image cropped and saved");
       })
