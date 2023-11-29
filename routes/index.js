@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 // const cors = require('cors')
 const cheerio = require("cheerio");
-const { dbFind, dbInsert, dbUpdate } = require("../db/dbOperations");
+const { dbFind, dbInsert, dbUpdate, dbGetARandomGreeting } = require("../db/dbOperations");
 const { resizeImage, wait } = require("../util/index");
 const path = require("path");
 
@@ -175,8 +175,11 @@ async function tweet(userName, userId) {
       }
     }
     //TODO this tweet sometimes fails!
+    // it's due to the frigging whoops!
+    let tweetText = await dbGetARandomGreeting();
+    tweetText = tweetText.replace("%userName%", userName);
     console.log("XBOT_SERVER logged in, will tweet.")
-    response = await fetch(process.env.XBOT_SERVER + "/xbot/tweet?text=" + encodeURIComponent("Hello " + userName + "! How are you?") + "&userId=" + userId);
+    response = await fetch(process.env.XBOT_SERVER + "/xbot/tweet?text=" + encodeURIComponent(tweetText) + "&userId=" + userId);
     response = JSON.parse(await response.text());
     console.log("tweet response->", JSON.stringify(response));
 

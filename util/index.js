@@ -1,6 +1,7 @@
 const sharp = require('sharp');
 const path = require("path");
 const fsPromises = require("fs/promises");
+const { dbGetARandomGreeting } = require("../db/dbOperations");
 
 function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -60,4 +61,5 @@ async function cropImage(filePath, width, height, top, left, newFilePath) {
   }
 
 }
+
 module.exports = { wait, resizeImage, deleteAllVideos, deleteAllPictures , cropImage};

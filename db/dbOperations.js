@@ -41,6 +41,20 @@ async function dbFind(collection, data) {
 
     return foundItem;
 }
+async function dbAggregate(collection, aggregateObj) {
+
+    const db = dbClient.db(dbName);
+
+    const theCollection = db.collection(collection);
+
+    const foundItem = await theCollection.aggregate([aggregateObj]).toArray();
+    return foundItem;
+}
+
+async function dbGetARandomGreeting() {
+    let greetingsArray = await dbAggregate("greetings", { $sample: { size: 1 } });
+    return greetingsArray[0].phrase;
+}
 
 async function emptyCollection(collection) {
 
@@ -53,5 +67,5 @@ async function emptyCollection(collection) {
     return emptyCollection;
 }
 
-module.exports = { dbInsert, dbFind, dbSetClient, dbSetName, dbUpdate, emptyCollection }
+module.exports = { dbGetARandomGreeting, dbInsert, dbFind, dbSetClient, dbSetName, dbUpdate, emptyCollection, dbAggregate }
 
