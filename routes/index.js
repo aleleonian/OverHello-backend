@@ -3,7 +3,7 @@ const router = express.Router();
 // const cors = require('cors')
 const cheerio = require("cheerio");
 const { dbFind, dbInsert, dbUpdate, dbGetARandomGreeting } = require("../db/dbOperations");
-const { resizeImage, wait } = require("../util/index");
+const { resizeImage, cropImage, wait } = require("../util/index");
 const path = require("path");
 
 
@@ -174,8 +174,6 @@ async function tweet(userName, userId) {
         return noTweetForThisUser();
       }
     }
-    //TODO this tweet sometimes fails!
-    // it's due to the frigging whoops!
     let tweetText = await dbGetARandomGreeting();
     tweetText = tweetText.replace("%userName%", userName);
     console.log("XBOT_SERVER logged in, will tweet.")
@@ -236,7 +234,16 @@ async function tweet(userName, userId) {
     response = JSON.parse(await response.text());
     if (response.success) {
       const updatedFilePath = response.fileName.replace("-original", "");
-      await resizeImage(path.resolve(__dirname, "../public/images/" + response.fileName), 400, 300, path.resolve(__dirname, "../public/images/" + updatedFilePath));
+
+      const left = 250;
+      const top = 100;
+      const right = 1440;
+      const bottom = 400;
+
+      const width = right - left
+      const height = bottom - top;
+
+      await cropImage(path.resolve(__dirname, "../public/images/" + response.fileName), width, height, top, left, path.resolve(__dirname, "../public/images/" + updatedFilePath));
       await dbUpdate("users", { userId: userId }, { "tweetSnapshot": updatedFilePath });
     }
     else {
@@ -277,10 +284,15 @@ async function spreadSheetStuff(userName, userId, equivalentsArray) {
   response = JSON.parse(await response.text());
   if (response.success) {
     const modifiedFilePath = response.fileName.replace("-original", "");
-    await resizeImage(path.resolve(__dirname, "../public/images/" + response.fileName), 400, 300, path.resolve(__dirname, "../public/images/" + modifiedFilePath));
-    const updateResult = await dbUpdate("users", { userId: userId }, { "spreadSheetSnapshot": modifiedFilePath });
-    // resize the image
-    console.log(updateResult);
+    
+    const left = 0;
+    const top = 0;
+    const width = 500 - left
+    const height = 500 - top;
+    
+    await cropImage(path.resolve(__dirname, "../public/images/" + response.fileName), width, height, top, left, path.resolve(__dirname, "../public/images/" + modifiedFilePath));
+    // await resizeImage(path.resolve(__dirname, "../public/images/" + response.fileName), 400, 300, path.resolve(__dirname, "../public/images/" + modifiedFilePath));
+    await dbUpdate("users", { userId: userId }, { "spreadSheetSnapshot": modifiedFilePath });
   }
   else {
     console.log(response.message);

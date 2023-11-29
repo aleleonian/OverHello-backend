@@ -1,7 +1,6 @@
 const sharp = require('sharp');
 const path = require("path");
 const fsPromises = require("fs/promises");
-const { dbGetARandomGreeting } = require("../db/dbOperations");
 
 function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
