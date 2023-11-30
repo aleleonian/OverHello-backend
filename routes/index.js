@@ -3,8 +3,9 @@ const router = express.Router();
 // const cors = require('cors')
 const cheerio = require("cheerio");
 const { dbFind, dbInsert, dbUpdate, dbGetARandomGreeting } = require("../db/dbOperations");
-const { resizeImage, cropImage, wait } = require("../util/index");
+const { cropImage, wait } = require("../util/index");
 const path = require("path");
+const QRCode = require('qrcode')
 
 
 
@@ -189,7 +190,7 @@ async function tweet(userName, userId) {
         if (response.url) {
           const tweetUrl = response.url;
           dbUpdate("users", { userId: userId }, { "tweet": tweetUrl });
-          tweetSnapshot(userId, response.url);
+          tweetQRcode(userId, response.url);
         }
         else return noTweetForThisUser();
       }
@@ -212,7 +213,7 @@ async function tweet(userName, userId) {
           }
           if (tweetUrl) {
             dbUpdate("users", { userId: userId }, { "tweetUrl": tweetUrl });
-            tweetSnapshot(userId, tweetUrl);
+            tweetQRcode(userId, tweetUrl);
           }
           else {
             return noTweetForThisUser();
@@ -229,7 +230,7 @@ async function tweet(userName, userId) {
     console.log("tweet() error->", error);
     return noTweetForThisUser();
   }
-  
+
   //// functions
   function noTweetForThisUser() {
     dbUpdate("users", { userId: userId }, { "tweetUrl": false })
@@ -247,7 +248,7 @@ async function tweet(userName, userId) {
       const top = 100;
       const right = 1400;
       const bottom = 400;
-      
+
       const width = right - left
       const height = bottom - top;;
 
@@ -258,6 +259,22 @@ async function tweet(userName, userId) {
       console.log(response.message);
     }
 
+  }
+  async function tweetQRcode(userId, tweetUrl) {
+
+    const fileName = `${userId}-qrcode.png`;
+    const filePath = path.resolve(__dirname, `../public/images/${fileName}`);
+
+    QRCode.toFile(filePath, tweetUrl, {
+    }, async function (err) {
+      if (err) {
+        //update the db indicating there's no qr image for this tweet
+      }
+      else {
+        console.log('saved.');
+        await dbUpdate("users", { userId: userId }, { "tweetQrFile": fileName });
+      }
+    })
   }
 }
 
