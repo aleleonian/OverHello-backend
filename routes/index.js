@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 // const cors = require('cors')
 const cheerio = require("cheerio");
-const { dbFind, dbInsert, dbUpdate, dbGetARandomGreeting } = require("../db/dbOperations");
+const { dbFindOne, dbInsert, dbUpdate, dbGetARandomGreeting } = require("../util/db/dbOperations");
 const { cropImage, wait } = require("../util/index");
 const path = require("path");
 const QRCode = require('qrcode')
@@ -67,7 +67,7 @@ router.post("/", async function (req, res, next) {
   delete scrapedData.equivalentsArray;
 
   // 3) check our db looking for that name
-  let nameWasFound = await dbFind("names", { Name: userName });
+  let nameWasFound = await dbFindOne("names", { Name: userName });
 
   response.name = userName;
   response.success = true;

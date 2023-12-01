@@ -15,7 +15,7 @@ var snapshotRouter = require('./routes/snapshot');
 var srpreadSheetRouter = require('./routes/spreadsheet');
 var greetingsRouter = require('./routes/greetings');
 
-const { dbSetClient, dbSetName } = require("./db/dbOperations");
+const { dbSetClient, dbSetName } = require("./util/db/dbOperations");
 
 var app = express();
 

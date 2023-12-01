@@ -7,6 +7,18 @@ require('dotenv').config();
 var app = require('../app');
 var debug = require('debug')('backend:server');
 var http = require('http');
+const { purgeUsers } = require("../util/index");
+const CronJob = require('cron').CronJob;
+
+const job = new CronJob(
+  '0 0 3 * * *', // cronTime
+  function () {
+    console.log('Time to purge!');
+    purgeUsers()
+  }, // onTick
+  null, // onComplete
+  true, // start
+);
 
 /**
  * Get port from environment and store in Express.

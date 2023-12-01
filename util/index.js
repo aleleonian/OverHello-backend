@@ -1,6 +1,8 @@
 const sharp = require('sharp');
 const path = require("path");
 const fsPromises = require("fs/promises");
+const { emptyCollection, dbFindOne, dbUpdate } = require("./db/dbOperations");
+const { deleteAllSpreadsheets } = require("../util/spreadsheets/index");
 
 function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -61,4 +63,69 @@ async function cropImage(filePath, width, height, top, left, newFilePath) {
 
 }
 
-module.exports = { wait, resizeImage, deleteAllVideos, deleteAllPictures , cropImage};
+async function deleteAllUsersAndTheirStuff() {
+
+  try {
+    // delete all the entries in the "users" collection
+    const emptyOperationResult = await emptyCollection("users");
+
+    // delete all the images in /public/images
+    const deleteImagesOperation = await deleteAllPictures();
+
+    // delete all the videos in /public/vids
+    const deleteVidsOperation = await deleteAllVideos();
+
+    // TODO this should not be public
+    // instead it should be a function inside this file
+
+    // delete all the spreadsheets
+    const deleteSpreadsheetsUrl = await deleteAllSpreadsheets();
+
+    // let's update the last purge timestamp
+    let configObj = await dbFindOne("configuration", {});
+
+    dbUpdate("configuration", { _id: configObj._id }, { lastPurgeTimeStamp: Date.now() });
+  }
+  catch (error) {
+    console.log("deleteAllUsersAndTheirStuff() error->", error);
+  }
+
+}
+async function purgeUsers() {
+
+  // TODO: now we need to cron this thing
+
+  // recupera la fecha de the last purge
+
+  let configObj = await dbFindOne("configuration", {});
+
+  // si ya pasaron 24 horas, purgea de nuevo
+
+  if (shouldPurgeUsers(configObj.lastPurgeTimeStamp)) {
+    console.log("Purging users!")
+    deleteAllUsersAndTheirStuff();
+  }
+  else {
+    console.log("not the time to purge  yet!");
+  }
+
+  // sino, no. 
+
+}
+
+function shouldPurgeUsers(lastPurgeTimeStamp) {
+
+  const rightNow = Date.now();
+
+  // Calculate the difference in milliseconds
+  const timeDifference = rightNow - lastPurgeTimeStamp;
+
+  const secondsDifference = timeDifference / 1000;
+  const minutesDifference = secondsDifference / 60;
+  const hoursDifference = Math.round(minutesDifference / 60);
+
+  if (hoursDifference > 24) return true;
+  else return false;
+}
+
+module.exports = { purgeUsers, wait, resizeImage, deleteAllVideos, deleteAllPictures, cropImage, deleteAllUsersAndTheirStuff };
