@@ -130,13 +130,26 @@ async function scrapeNameInfo(name) {
 
     $ = cheerio.load(html);
 
-    let equivalentsArray = $('#body-inner > div:nth-child(6)').text().trim().split(/\n/);
+    // new stuff
 
-    equivalentsArray = equivalentsArray.map(entry => entry.replace(/\s+/g, " "));
+    const relevantHeader = $('h3.related-hdr:contains("Equivalents")');
 
-    scrapedData.equivalent = equivalentsArray[Math.floor(Math.random() * equivalentsArray.length)];
+    if (relevantHeader.length > 0) {
+      const relatedDiv = relevantHeader.next('.related-grp');
 
-    scrapedData.equivalentsArray = equivalentsArray
+      if (relatedDiv.length > 0) {
+        // Output the content of the related div
+        const textData = relatedDiv.text();
+        const equivalentsArray = textData.replace(/Related Content: $\n/, "").trim().split(/\n/).map(entry => entry.replace(/\s+/g, " "));
+        scrapedData.equivalent = equivalentsArray[Math.floor(Math.random() * equivalentsArray.length)];
+        scrapedData.equivalentsArray = equivalentsArray;
+      } else {
+        console.log('Related div not found');
+      }
+    } else {
+      console.log('Specified h3 tag not found');
+    }
+
   }
   catch (error) {
     console.log("Error fetching equivalent data->", error);
