@@ -4,6 +4,9 @@
  * Module dependencies.
  */
 require('dotenv').config();
+
+checkEnvVars();
+
 var app = require('../app');
 var debug = require('debug')('backend:server');
 var http = require('http');
@@ -99,4 +102,37 @@ function onListening() {
     ? 'pipe ' + addr
     : 'port ' + addr.port;
   debug('Listening on ' + bind);
+}
+
+function checkEnvVars() {
+  let ENV_VARS = [
+    { var: process.env.CORS_HOST, name: 'CORS_HOST' },
+    { var: process.env.THIS_SERVER, name: 'THIS_SERVER' },
+    { var: process.env.DB_NAME, name: 'DB_NAME' },
+    { var: process.env.DB_USER, name: 'DB_USER' },
+    { var: process.env.DB_PASS, name: 'DB_PASS' },
+    { var: process.env.DB_HOST, name: 'DB_HOST' },
+    { var: process.env.SHEETS_ID, name: 'SHEETS_ID' },
+    { var: process.env.SHEETS_URL, name: 'SHEETS_URL' },
+    { var: process.env.SHEETS_EMAIL, name: 'SHEETS_EMAIL' },
+    { var: process.env.SHEETS_KEY, name: 'SHEETS_KEY' },
+    { var: process.env.XBOT_SERVER, name: 'XBOT_SERVER' },
+  ]
+
+  let allTheEnvVars = "";
+  let problems = false;
+
+  ENV_VARS.forEach(envObject => {
+    allTheEnvVars += envObject.name + ", ";
+    if (!envObject.var) {
+      problems = true;
+      console.log(`${envObject.name} env var is missing!`);
+    }
+  });
+  allTheEnvVars = allTheEnvVars.substring(0, allTheEnvVars.lastIndexOf(","));
+  if (problems) {
+    console.log("ABORTING!");
+    console.log("You need to set the following enviroment variables: " + allTheEnvVars);
+    process.exit();
+  }
 }
